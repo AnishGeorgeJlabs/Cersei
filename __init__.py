@@ -7,7 +7,7 @@ from bson.json_util import dumps, loads
 
 # ------- Database Authentication and access ---------------- #
 dbclient = pymongo.MongoClient("45.55.232.5:27017")
-dbclient.tyrion.authenticate("cerseiApi", "baratheonQueen", mechanism='MONGODB-CR')
+dbclient.cersei.authenticate("cerseiApi", "baratheonQueen", mechanism='MONGODB-CR')
 
 db = dbclient.cersei
 
