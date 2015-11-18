@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from . import mock
+from . import mock, security
 
 @csrf_exempt
 def test(request):
@@ -24,7 +24,10 @@ def test(request):
 urlpatterns = [
     url(r'^$', test),
     url(r'^orders', mock.orders),
-    url(r'^scan', mock.scan)
+    url(r'^scan', mock.scan),
+
+    url(r'^auth/login', security.login),
+    url(r'^auth/change_pass', security.change_password)
 ]
 
 
