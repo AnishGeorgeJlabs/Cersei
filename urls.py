@@ -1,6 +1,7 @@
 from django.conf.urls import url
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from . import mock
 
 @csrf_exempt
 def test(request):
@@ -21,7 +22,9 @@ def test(request):
     })
 
 urlpatterns = [
-    url(r'^$', test)
+    url(r'^$', test),
+    url(r'^orders', mock.orders),
+    url(r'^scan', mock.scan)
 ]
 
 
