@@ -13,7 +13,7 @@ def login(request):
     res = db.credentials.find_one({"username": data['username'], "password": data['password']})
     if res:
         vendor_id = int(res['vendor_id'])
-        mer = db.merchants.find_one({"vendors.vendor_id": vendor_id}, {"vendors.$": True, "name": True})
+        mer = db.vendors.find_one({"vendors.vendor_id": vendor_id}, {"vendors.$": True, "name": True})
         return basic_success({
             "vendor_id": vendor_id,
             "api_key": str(res['_id']),
