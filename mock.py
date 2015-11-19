@@ -66,7 +66,7 @@ details_map = {
 
 def details(request):
     order_id = request.GET.get("order_id", "order_#_1")
-    if not details_map[order_id]:
+    if order_id not in details_map:
         return basic_failure('Not found')
     else:
         return basic_success(details_map[order_id])
