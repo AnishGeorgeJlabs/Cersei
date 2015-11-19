@@ -23,11 +23,13 @@ def test(request):
 
 urlpatterns = [
     url(r'^$', test),
-    url(r'^orders', mock.orders),
-    url(r'^scan', mock.scan),
+    url(r'^orders$', mock.orders),
+    url(r'^orders/details$',mock.details),
+    url(r'^scan$', mock.scan),
 
-    url(r'^auth/login', security.login),
-    url(r'^auth/change_pass', security.change_password)
+
+    url(r'^auth/login$', security.login),
+    url(r'^auth/change_pass$', security.change_password)
 ]
 
 
