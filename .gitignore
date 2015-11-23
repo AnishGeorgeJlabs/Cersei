@@ -2,3 +2,4 @@ __pycache__
 *.pyc
 .idea
 cersei.iml
+db_creds.json

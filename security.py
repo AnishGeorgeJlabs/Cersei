@@ -23,6 +23,14 @@ def login(request):
     else:
         return basic_failure("Unauthorized access")
 
+def fake_login(request):
+    return basic_success({
+        "vendor_id": 0,
+        "api_key": "2e3ax301eskq5r32zxd205r",
+        "name": "Mock vendor you know",
+        "address": "Mock location for vendor"
+    })
+
 @csrf_exempt
 def change_password(request):
     opts = get_json(request)
