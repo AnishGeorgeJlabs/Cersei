@@ -7,7 +7,13 @@ from bson.json_util import dumps, loads
 
 # ------- Database Authentication and access ---------------- #
 import json
-with open("db_creds.json", 'r') as cfile:
+import os
+
+file = os.path.join(
+    os.path.dirname(__file__),
+    'db_creds.json'
+)
+with open(file, 'r') as cfile:
     creds = json.load(cfile)['cersei']
 
 dbclient = pymongo.MongoClient("45.55.232.5:27017")
