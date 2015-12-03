@@ -1,5 +1,4 @@
-from . import basic_success
-from . import basic_failure
+from . import basic_success, basic_failure, db
 
 details_map = {
     "order_1": {
@@ -95,7 +94,20 @@ def orders(request):
         }
     ]
 
-    return basic_success(orders_list)
+    data = list(db.orders.find({"vendor_id": 0}, {
+        "order_id": 1, "address": 1, "timestamp": 1,
+        "order.qty": 1, "order.price": 1
+    }))
+
+    for record in data:
+        order = record.pop('order')
+        record['price'] = 0
+        record['item_count'] = 0
+        for item in order:
+            record['price'] += item['price']
+            record['item_count'] += item['qty']
+
+    return basic_success(data)
 
 
 def scan(request):
