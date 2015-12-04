@@ -66,10 +66,19 @@ details_map = {
 
 def details(request):
     order_id = request.GET.get("order_id", "order_#_1")
-    if order_id not in details_map:
-        return basic_failure('Not found')
+    vendor_id = int(request.GET.get("vendor_id", 0))
+    order = db.orders.find_one({"vendor_id": vendor_id, "order_id": order_id})
+    if not order:
+        return basic_failure("Not found")
     else:
-        return basic_success(details_map[order_id])
+        return basic_success(order)
+
+'''
+if order_id not in details_map:
+    return basic_failure('Not found')
+else:
+    return basic_success(details_map[order_id])
+'''
 
 
 def orders(request):
