@@ -1,4 +1,4 @@
-from . import basic_success, basic_failure, db
+from . import basic_success, basic_failure, basic_error, db
 
 details_map = {
     "order_1": {
@@ -120,4 +120,11 @@ def orders(request):
 
 
 def scan(request):
-    return basic_success(20)
+    code = request.GET.get("code")
+    if not code:
+        return basic_error("No code given")
+    data = db.codes.find_one({"code": code, "used": False}, {"barcode": True, "pts": True, "_id": False})
+    if not data:
+        return basic_failure("Already used")
+    else:
+        return basic_success(data)
