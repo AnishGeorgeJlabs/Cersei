@@ -24,7 +24,8 @@ def test(request):
 urlpatterns = [
     url(r'^$', test),
     url(r'^orders$', security.auth(order.order_list)),
-    url(r'^orders/details$',mock.details),
+    url(r'^orders/details$', mock.details),
+    url(r'^orders/update', security.auth(order.update_order)),
     url(r'^scan$', mock.scan),
 
 
