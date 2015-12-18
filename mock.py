@@ -119,12 +119,3 @@ def orders(request):
     return basic_success(data)
 
 
-def scan(request):
-    code = request.GET.get("code")
-    if not code:
-        return basic_error("No code given")
-    data = db.codes.find_one({"code": code, "used": False}, {"barcode": True, "pts": True, "_id": False})
-    if not data:
-        return basic_failure("Already used")
-    else:
-        return basic_success(data)

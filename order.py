@@ -90,3 +90,29 @@ def update_order(opts, vendor_id, method):
             "$push": push_query
         })
         return basic_success(pts)
+
+
+def inner_scan(opts, vendor_id, method):
+    code = opts.get("code")
+    if not code:
+        return basic_error("No code given")
+    data = db.codes.find_one({"code": code, "used": False}, {"barcode": True, "pts": True, "_id": False})
+    if not data:
+        return basic_failure("Already used")
+    else:
+        return basic_success(data)
+
+
+def new_scan(opts, vendor_id, method):
+    code = opts.get("code")
+    if not code:
+        return basic_error("No code given")
+    code_data = db.codes.find_one({"code": code, "used": False}, {"_id": False })
+    if not code_data:
+        return basic_failure("Already used")
+    item = db.items.find_one({"barcode": code_data['barcode']}, {"_id": False, "name": 1, "barcode": 1})
+    return basic_success({
+        "code": code,
+        "pts": code_data['pts'],
+        "item": item
+    })

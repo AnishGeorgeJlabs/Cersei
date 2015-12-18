@@ -26,7 +26,8 @@ urlpatterns = [
     url(r'^order/list$', security.auth(order.order_list)),
     url(r'^order/details$', mock.details),
     url(r'^order/update', security.auth(order.update_order)),
-    url(r'^order/scan$', mock.scan),
+    url(r'^order/scan$', security.auth(order.inner_scan)),
+    url(r'^order/scan/new$', security.auth(order.new_scan)),
     url(r'^retailer/account', security.auth(retailer.vendor_account)),
 
 
