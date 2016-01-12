@@ -28,7 +28,7 @@ urlpatterns = [
     url(r'^orders/details$', mock.details),
     url(r'^orders/update', security.auth(order.update_order)),
     url(r'^scan$', mock.scan),
-	url(r'^location',  search_location.get_location),
+	url(r'^location',  search_location.search_query),
 	url(r'^show_offers',  show_offers.show_offers),
     url(r'^auth/login$', security.login),
     url(r'^auth/change_pass$', security.change_password)
