@@ -1,7 +1,7 @@
 """
 Create an index for the location against the vendors available there and their delivery types
 """
-from .db_con import db
+from db_con import db
 
 # change alt collection to actual
 db.vendors_alt.aggregate([
