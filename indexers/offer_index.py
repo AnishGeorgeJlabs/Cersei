@@ -132,7 +132,7 @@ printer.pprint(loc_data)
 
 # AND WE WILL NOW ADD THIS TO DATABASE
 try:
-    db.index_offers.delete()
+    db.index_offers.delete_many({})
 except:
     pass
 db.index_offers.insert_many(loc_data)
