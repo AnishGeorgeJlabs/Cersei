@@ -76,9 +76,18 @@ items_map = dict(
     })
 )
 
+
 for offer in offer_vendor_aggregate.values():
     offer['item'] = items_map.get(offer.pop('item_id'))
 
+# --- Now for some banner stuff -----
+off_banners = dict()
+ext_banners = []
+for banner in db.banners.find():
+    if banner['type'] == "offer":
+        off_banners[banner['offer_id']] = banner
+    else:
+        ext_banners.append(banner)
 
 # Now for the final push, creating the actual data
 loc_data = list(db.index_location.find())
@@ -87,6 +96,9 @@ for doc in loc_data:
     v_dict = dict((v['vendor_id'], v['delivery']) for v in vendors)
     doc['vendors'] = v_dict
     doc['offers'] = []
+    offer_ids = []
+    if len(ext_banners):
+        doc['external_banners'] = ext_banners
     for offer in offer_vendor_aggregate.values():
         common_keys = doc['vendors'].keys() & offer['vendors'].keys()
         if common_keys:
@@ -101,15 +113,28 @@ for doc in loc_data:
                 })
             apOffer['vendors'] = f_vendors
             doc['offers'].append(apOffer)
+            offer_ids.append(apOffer['offer_id'])
     doc.pop('vendors')
 
+    if len(offer_ids):
+        banners = []
+        for oid in offer_ids:
+            banner = off_banners.get(oid)
+            if banner:
+                banners.append(banner)
+
+        doc['offer_banners'] = banners
+
 loc_data = list(filter(lambda d: len(d['offers']) > 0, loc_data))
+
 
 printer.pprint(loc_data)
 
 # AND WE WILL NOW ADD THIS TO DATABASE
+'''
 try:
     db.index_offers.delete()
 except:
     pass
 db.index_offers.insert_many(loc_data)
+'''
