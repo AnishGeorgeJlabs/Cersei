@@ -16,9 +16,9 @@ def offers(request):
 		area=request.GET['area']
 	except:
 		return basic_error("Invalid Parameters")
-	cur_time= datetime.now()
-	data=db.index_dummy
-	query = {"area":area , "location":location , "offers.expiry":{"$gte":cur_time}  }
+	
+	data=db.index_offers
+	query = {"area":area , "location":location}
 	result = data.find(query ,{"_id":False })
 	return basic_success(result)
 	
