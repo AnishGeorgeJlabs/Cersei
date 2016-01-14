@@ -131,10 +131,8 @@ loc_data = list(filter(lambda d: len(d['offers']) > 0, loc_data))
 printer.pprint(loc_data)
 
 # AND WE WILL NOW ADD THIS TO DATABASE
-'''
 try:
     db.index_offers.delete()
 except:
     pass
 db.index_offers.insert_many(loc_data)
-'''
