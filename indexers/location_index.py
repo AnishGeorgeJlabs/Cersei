@@ -6,7 +6,7 @@ from db_con import db
 # change alt collection to actual
 db.vendors_alt.aggregate([
     {"$unwind": "$op_locations"},
-    {"group": {
+    {"$group": {
         "_id": {
             "area": "$op_locations.area",
             "location": "$op_locations.location"
@@ -14,7 +14,7 @@ db.vendors_alt.aggregate([
         "vendors": {
             "$addToSet": {
                 "vendor_id": "$vendor_id",
-                "delivery": "$op_location.delivery"
+                "delivery": "$op_locations.delivery"
             }
         }
     }},

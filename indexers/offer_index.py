@@ -12,11 +12,9 @@ printer = pprint.PrettyPrinter(indent=3)
 
 from datetime import datetime
 
-from cache import Cache
 from db_con import db
 
 # --------- Step 1, complete each offer -------------
-item_cache = Cache("item")
 
 non_expired_offers = dict(
     (off['offer_id'], off) for off in
@@ -68,10 +66,21 @@ for offer_id, offer in offer_vendor_aggregate.items():
     vendors = offer.pop('vendors')
     v_dict = dict((v['vendor_id'], v['code_count']) for v in vendors)
     offer['vendors'] = v_dict
-    # todo, add item information to the offers here
 
-#printer.pprint(offer_vendor_aggregate)
+'''adding item data using method 2'''
+item_ids = set(map(lambda off: off['item_id'], offer_vendor_aggregate.values()))
+items_map = dict(
+    (item['item_id'], item) for item in
+    db.items_alt.find({"item_id": {"$in": list(item_ids)}}, {
+        "_id": 0, "company_id": 0, "barcode": 0
+    })
+)
 
+for offer in offer_vendor_aggregate.values():
+    offer['item'] = items_map.get(offer.pop('item_id'))
+
+
+# Now for the final push, creating the actual data
 loc_data = list(db.index_location.find())
 for doc in loc_data:
     vendors = doc.pop('vendors')
@@ -97,3 +106,10 @@ for doc in loc_data:
 loc_data = list(filter(lambda d: len(d['offers']) > 0, loc_data))
 
 printer.pprint(loc_data)
+
+# AND WE WILL NOW ADD THIS TO DATABASE
+try:
+    db.index_offers.delete()
+except:
+    pass
+db.index_offers.insert_many(loc_data)
