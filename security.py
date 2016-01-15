@@ -45,15 +45,25 @@ def fake_login(request):
 
 @csrf_exempt
 def change_password(request):
+    """
+    Universal change password controller
+    :param request:
+    :return:
+    """
     opts = get_json(request)
-    for key in ['api_key', 'vendor_id', 'old_pass', 'new_pass', 'username']:
+    type = opts['type']
+    user_key = type + '_id'
+
+    for key in ['api_key', user_key, 'old_pass', 'new_pass', 'username']:
         if key not in opts:
             return basic_error(key+" missing, unauthorized access")
+
     update = db.credentials.update_one({
         "_id": ObjectId(opts['api_key']),
         "username": opts['username'],
         "password": opts['old_pass'],
-        "vendor_id": opts['vendor_id']
+        "type": type,
+        user_key: opts[user_key]
     }, {"$set": {"password": opts['new_pass']}})
     return basic_success(update.modified_count == 1)
 
