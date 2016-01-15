@@ -16,16 +16,16 @@ def login(request):
     :return:
     """
     data = get_json(request)
-    for key in ['username', 'password', 'type']:
+    for key in ['username', 'password', 'user_type']:
         if key not in data:
             return basic_error(key+" missing")
 
-    user_key = data['type'] + "_id"         # can be vendor_id, fe_id, user_id
+    user_key = data['user_type'] + "_id"         # can be vendor_id, fe_id, user_id
 
     res = db.credentials.find_one({"username": data['username'], "password": data['password']})
     if res:
         c_id = int(res[user_key])
-        user = db.get_collection(collection_map[data['type']]).find_one({user_key: c_id})
+        user = db.get_collection(collection_map[data['user_type']]).find_one({user_key: c_id})
         return basic_success({
             user_key: c_id,
             "api_key": str(res['_id']),
@@ -51,7 +51,7 @@ def change_password(request):
     :return:
     """
     opts = get_json(request)
-    type = opts['type']
+    type = opts['user_type']
     user_key = type + '_id'
 
     for key in ['api_key', user_key, 'old_pass', 'new_pass', 'username']:
@@ -79,15 +79,16 @@ def auth(handler):
         else:
             opts = get_json(request)
 
-        for key in ['api_key', 'vendor_id']:
+        user_key = opts['user_type'] + '_id'
+        for key in ['api_key', user_key]:
             if key not in opts:
                 return basic_error(key+" missing, unauthorized access")
 
         api_key = opts.get('api_key')
-        vendor_id = int(opts.get('vendor_id'))
+        c_id = int(opts.get(user_key))
         try:
-            if db.credentials.count({"_id": ObjectId(api_key), "vendor_id": vendor_id}) > 0:
-                return handler(opts, vendor_id, request.method)
+            if db.credentials.count({"_id": ObjectId(api_key), user_key: c_id}) > 0:
+                return handler(opts, c_id, request.method)
             else:
                 return basic_failure("Unauthorized access")
         except Exception as e:

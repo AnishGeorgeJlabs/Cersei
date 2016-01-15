@@ -31,12 +31,12 @@ urlpatterns = [
     url(r'^auth/change_pass$', security.change_password),
 
     # ------------ Vendor URL's -------------------------
-    url(r'^order/list$', security.auth(order.order_list)),
-    url(r'^order/details$', mock.details),
-    url(r'^order/update', security.auth(order.update_order)),
-    url(r'^order/scan$', security.auth(order.inner_scan)),
-    url(r'^order/scan/new$', security.auth(order.new_scan)),
-    url(r'^retailer/account', security.auth(account.vendor_account)),
+    url(r'^vendor/order/list$', security.auth(order.order_list)),
+    url(r'^vendor/order/details$', mock.details),
+    url(r'^vendor/order/update', security.auth(order.update_order)),
+    url(r'^vendor/order/scan$', security.auth(order.inner_scan)),
+    url(r'^vendor/order/scan/new$', security.auth(order.new_scan)),
+    url(r'^vendor/account', security.auth(account.vendor_account)),
 
     # ------------ Consumer URL's -----------------------
     url(r'^location',  search_location.search_query),
