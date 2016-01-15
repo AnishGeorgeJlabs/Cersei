@@ -1,8 +1,9 @@
 from django.conf.urls import url
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from . import mock, security, order, retailer
-from .consumer import show_offers, search_location,rewards,offers
+from . import mock, security
+from .vendor import order, account
+from .consumer import show_offers, search_location,rewards, offers
 
 @csrf_exempt
 def test(request):
@@ -24,18 +25,23 @@ def test(request):
 
 urlpatterns = [
     url(r'^$', test),
-    url(r'^order/list$', security.auth(order.order_list)),
-    url(r'^order/details$', mock.details),
-    url(r'^order/update', security.auth(order.update_order)),
-    url(r'^order/scan$', security.auth(order.inner_scan)),
-    url(r'^order/scan/new$', security.auth(order.new_scan)),
-    url(r'^retailer/account', security.auth(retailer.vendor_account)),
-	url(r'^consumer/location',  search_location.search_query),
+
+    # ------------ Vendor URL's -------------------------
+    url(r'^vendor/order/list$', security.auth(order.order_list)),
+    url(r'^vendor/order/details$', mock.details),
+    url(r'^vendor/order/update', security.auth(order.update_order)),
+    url(r'^vendor/order/scan$', security.auth(order.inner_scan)),
+    url(r'^vendor/order/scan/new$', security.auth(order.new_scan)),
+    url(r'^vendor/account', security.auth(account.vendor_account)),
+
+    # ------------ Consumer URL's -----------------------
+    url(r'^consumer/location',  search_location.search_query),
     url(r'^consumer/show_offers',  show_offers.show_offers),
-	url(r'^consumer/reward',rewards.activeRewards),
-	url(r'^auth/login$', security.login),
+    url(r'^consumer/reward',rewards.activeRewards),
+
+    # ------------ Auth URL's ---------------------------
+    url(r'^auth/login$', security.login),
     url(r'^auth/change_pass$', security.change_password),
-	url(r'^consumer/offers',  offers.offers),
 ]
 
 
