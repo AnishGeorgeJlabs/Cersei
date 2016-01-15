@@ -3,22 +3,34 @@ from django.views.decorators.csrf import csrf_exempt
 from bson.json_util import ObjectId
 from . import db, get_json, basic_failure, basic_error, basic_success
 
+collection_map = {
+    "user": "users",
+    "vendor": "vendors",
+    "fe": "fe"
+}
 @csrf_exempt
 def login(request):
+    """
+    Universal login procedure
+    :param request:
+    :return:
+    """
     data = get_json(request)
-    for key in ['username', 'password']:
+    for key in ['username', 'password', 'type']:
         if key not in data:
             return basic_error(key+" missing")
 
+    user_key = data['type'] + "_id"         # can be vendor_id, fe_id, user_id
+
     res = db.credentials.find_one({"username": data['username'], "password": data['password']})
     if res:
-        vendor_id = int(res['vendor_id'])
-        mer = db.vendors.find_one({"vendor_id": vendor_id})
+        c_id = int(res[user_key])
+        user = db.get_collection(collection_map[data['type']]).find_one({user_key: c_id})
         return basic_success({
-            "vendor_id": vendor_id,
+            user_key: c_id,
             "api_key": str(res['_id']),
-            "name": mer['name'],
-            "address": mer['address']
+            "name": user['name'],
+            "address": user.get('address')
         })
     else:
         return basic_failure("Unauthorized access")
