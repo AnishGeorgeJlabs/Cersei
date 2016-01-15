@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from . import mock, security
 from .vendor import order, account
-from .consumer import show_offers, search_location,rewards
+from .consumer import show_offers, search_location,rewards, offers
 
 @csrf_exempt
 def test(request):
@@ -26,10 +26,6 @@ def test(request):
 urlpatterns = [
     url(r'^$', test),
 
-    # ------------ Auth URL's ---------------------------
-    url(r'^auth/login$', security.login),
-    url(r'^auth/change_pass$', security.change_password),
-
     # ------------ Vendor URL's -------------------------
     url(r'^vendor/order/list$', security.auth(order.order_list)),
     url(r'^vendor/order/details$', mock.details),
@@ -39,10 +35,13 @@ urlpatterns = [
     url(r'^vendor/account', security.auth(account.vendor_account)),
 
     # ------------ Consumer URL's -----------------------
-    url(r'^location',  search_location.search_query),
-    url(r'^show_offers',  show_offers.show_offers),
-    url(r'^reward', rewards.activeRewards),
+    url(r'^consumer/location',  search_location.search_query),
+    url(r'^consumer/show_offers',  show_offers.show_offers),
+    url(r'^consumer/reward',rewards.activeRewards),
 
+    # ------------ Auth URL's ---------------------------
+    url(r'^auth/login$', security.login),
+    url(r'^auth/change_pass$', security.change_password),
 ]
 
 
