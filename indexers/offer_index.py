@@ -83,22 +83,21 @@ for offer in offer_vendor_aggregate.values():
 # --- Now for some banner stuff -----
 off_banners = dict()
 ext_banners = []
-for banner in db.banners.find():
+for banner in db.banners.find({}, {"_id": False}):
     if banner['type'] == "offer":
         off_banners[banner['offer_id']] = banner
     else:
         ext_banners.append(banner)
 
 # Now for the final push, creating the actual data
-loc_data = list(db.index_location.find())
+loc_data = list(db.index_location.find({}, {"_id": False}))
 for doc in loc_data:
     vendors = doc.pop('vendors')
     v_dict = dict((v['vendor_id'], v['delivery']) for v in vendors)
     doc['vendors'] = v_dict
     doc['offers'] = []
     offer_ids = []
-    if len(ext_banners):
-        doc['external_banners'] = ext_banners
+    doc['banners'] = ext_banners
     for offer in offer_vendor_aggregate.values():
         common_keys = doc['vendors'].keys() & offer['vendors'].keys()
         if common_keys:
@@ -111,6 +110,7 @@ for doc in loc_data:
                     "delivery": doc['vendors'][key],
                     "code_count": oVendors[key]
                 })
+            apOffer['delivery'] = any(vendor['delivery'] for vendor in f_vendors)
             apOffer['vendors'] = f_vendors
             doc['offers'].append(apOffer)
             offer_ids.append(apOffer['offer_id'])
@@ -123,7 +123,7 @@ for doc in loc_data:
             if banner:
                 banners.append(banner)
 
-        doc['offer_banners'] = banners
+        doc['banners'] += banners
 
 loc_data = list(filter(lambda d: len(d['offers']) > 0, loc_data))
 
