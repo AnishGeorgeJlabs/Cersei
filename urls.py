@@ -1,7 +1,8 @@
 from django.conf.urls import url
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from . import mock, security, order, retailer
+from . import mock, security
+from .vendor import order, retailer
 from .consumer import show_offers, search_location,rewards
 
 @csrf_exempt
@@ -36,7 +37,7 @@ urlpatterns = [
 
     url(r'^auth/login$', security.login),
     url(r'^auth/change_pass$', security.change_password),
-	url(r'^reward',rewards.activeRewards)
+	url(r'^reward', rewards.activeRewards)
 ]
 
 
