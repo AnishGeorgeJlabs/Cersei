@@ -39,6 +39,8 @@ urlpatterns = [
     url(r'^consumer/show_offers',  show_offers.show_offers),
     url(r'^consumer/reward',rewards.activeRewards),
 	url(r'^consumer/code' , scancode.scanCode),
+	url(r'^consumer/offers',  offers.offers),
+    
 
     # ------------ Auth URL's ---------------------------
     url(r'^auth/login$', security.login),
