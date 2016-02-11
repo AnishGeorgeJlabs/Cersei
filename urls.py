@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from . import mock, security
 from .vendor import order, account
 from .consumer import show_offers, search_location,rewards, offers , scancode
-
+from .fe import fe_offers
 @csrf_exempt
 def test(request):
     if request.method == "GET":
@@ -25,8 +25,7 @@ def test(request):
 
 urlpatterns = [
     url(r'^$', test),
-
-    # ------------ Vendor URL's -------------------------
+	# ------------ Vendor URL's -------------------------
     url(r'^vendor/order/list$', security.auth(order.order_list)),
     url(r'^vendor/order/details$', mock.details),
     url(r'^vendor/order/update', security.auth(order.update_order)),
@@ -41,7 +40,9 @@ urlpatterns = [
 	url(r'^consumer/code' , scancode.scanCode),
 	url(r'^consumer/offers',  offers.offers),
     
-
+	#-------------FE APP URL's ---------------------------
+	url(r'^feapp/list_item', fe_offers.list_item),
+    
     # ------------ Auth URL's ---------------------------
     url(r'^auth/login$', security.login),
     url(r'^auth/change_pass$', security.change_password),
