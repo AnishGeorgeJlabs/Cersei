@@ -16,3 +16,47 @@ def list_item(request):
 		return basic_success(result)
 	except:
 		return basic_failure()
+def list_vendor(request):
+	try:
+		data=db.vendors_alt
+		result=data.find(projection={"_id":False , "vendor_id":1 , "name":1 , "address.address":1})
+		return basic_success(result)
+	except:
+		return basic_failure()
+def list_offers(request):
+	try:
+		data=db.codes_alt
+		result=list(data.aggregate( [
+			{
+				"$match":{
+					"used":False
+				}
+			},
+			{ 
+				'$group':{
+					'_id':"$offer_id" ,
+					"vendors":{
+						'$addToSet':"$vendor_id"
+					},
+					"count": {"$sum": 1}
+				}
+			},
+			{
+				"$project": {
+					"offer_id": "$_id",
+					"_id": 0 , "count":1 , "vendors":1
+				}
+			}
+		]))
+		data=db.offers_alt
+		aa = list(data.find({"expired":False},{"_id":False}))
+		result1=list()
+		for r in aa:
+			for res in result: 
+				if r['offer_id']==res['offer_id']:
+					r['vendors']=res['vendors']
+					result1.append(r)
+		return basic_success(result1)
+	except Exception as e:
+		return basic_failure(e)
+		
