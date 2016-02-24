@@ -49,7 +49,22 @@ def list_offers(request):
 			}
 		]))
 		data=db.offers_alt
-		aa = list(data.find({"expired":False},{"_id":False}))
+		aa = list(data.aggregate([
+			{
+			   "$match":{
+					"expired":False
+				}
+			},
+			{
+				'$project': {
+				  'DM': { '$dateToString': { 'format': "%Y/%m", 'date': "$dom" } },
+				  'DE': { '$dateToString': { 'format': "%Y/%m", 'date': "$expiry" } },
+				  "_id":0,
+				  "offer_id":1 , "points":1 , 'item_id':1 
+			   }
+			 }
+		   ]
+		))
 		result1=list()
 		for r in aa:
 			for res in result: 
@@ -59,4 +74,8 @@ def list_offers(request):
 		return basic_success(result1)
 	except Exception as e:
 		return basic_failure(e)
+
+	
+		
+	
 		
