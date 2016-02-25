@@ -44,6 +44,7 @@ urlpatterns = [
 	url(r'^feapp/list_item', fe_offers.list_item),
 	url(r'^feapp/list_vendor', fe_offers.list_vendor),
 	url(r'^feapp/list_offer', fe_offers.list_offers),
+	url(r'^feapp/create_offers', fe_offers.create_offers),
     
     # ------------ Auth URL's ---------------------------
     url(r'^auth/login$', security.login),
