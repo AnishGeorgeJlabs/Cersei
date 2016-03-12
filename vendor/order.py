@@ -5,7 +5,13 @@ def item_list(request):
 	if request.method != "GET":
 		return basic_failure("GET method only")
 	store_id = request.GET.get("store_id")
-	return basic_success(db.items_alt.find({"store_id" :int(store_id)} , {"_id":False}))
+	if store_id:
+		try:
+			return basic_success(db.items_alt.find({"store_id" :int(store_id)} , {"_id":False}))
+		except:
+			return basic_error("Invalid Store ID");
+	else:
+		return basic_error("Store id is not available");
 	
 	
 def order_list(opts, vendor_id, method):
