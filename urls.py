@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^vendor/order/details$', mock.details),
     url(r'^vendor/order/update', security.auth(order.update_order)),
     url(r'^vendor/order/scan$', security.auth(order.inner_scan)),
+	url(r'^vendor/list_item$', (order.item_list)),
     url(r'^vendor/order/scan/new$', security.auth(order.new_scan)),
     url(r'^vendor/account', security.auth(account.vendor_account)),
 
