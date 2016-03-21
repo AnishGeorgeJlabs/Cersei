@@ -129,10 +129,10 @@ def create_offers(request):
 		countt=0
 		all_offers_id=list()
 		for new in new_offer:
-			DOM = (new['dom']).split("/")
+			DOM = (new['dom']).split("-")
 			day = calendar.monthrange(int(str(DOM[0])) , int(str(DOM[1])))[1]
 			DM=datetime.strptime(new['dom']+"-"+str(day) , "%Y-%m-%d")
-			DOE = (new['doe']).split("/")
+			DOE = (new['doe']).split("-")
 			day = calendar.monthrange(int(str(DOE[0])) , int(str(DOE[1])))[1]
 			DE=datetime.strptime(new['doe']+"-"+str(day) , "%Y-%m-%d")
 			item_id=new['item_id']
@@ -147,7 +147,7 @@ def create_offers(request):
 				for cd in v['qrcodes']:
 					code['used']=False
 					code['vendor_id']=v['vid']
-					code['csss']=cd
+					code['codes']=cd
 					code['offer_id']=max1
 					codes.append(code.copy())
 			result=data.insert({"offer_id":max1 , "dom":DM , "expiry":DE , "points":int(points) , "fe_id":[ fe_id] , "item_id":item_id , "vendor_id":vendor_list , "expired":False})
@@ -172,10 +172,10 @@ def create_offers(request):
 		data=db.codes_alt
 		result = data.insert_many(codes)
 		data=db.fe_db
-		result = data.find_one_and_update({"fe_id":fe_id} , {"$addToSet":{"$each":all_offers_id}})
+		result = data.find_one_and_update({"fe_id":int(fe_id)} , {"$addToSet":{"my_offer":{"$each":all_offers_id}}})
 		return basic_success(countt)
-	except:
-		return basic_failure()
+	except Exception as e:
+		return basic_failure(str(e))
 	
 		
 	
