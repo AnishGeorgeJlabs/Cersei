@@ -1,10 +1,10 @@
 from . import basic_success, basic_failure, basic_error, db
 from datetime import datetime
 
-def item_list(request):
-	if request.method != "GET":
-		return basic_failure("GET method only")
-	store_id = request.GET.get("store_id")
+def item_list(opts, vendor_id, method):
+	if method != "POST":
+		return basic_failure("POST method only")
+	store_id = opts['vendor_id']
 	if store_id:
 		try:
 			return basic_success(db.items_alt.find({"store_id" :int(store_id)} , {"_id":False}))
