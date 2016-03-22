@@ -2,8 +2,8 @@ from . import basic_success, basic_failure, basic_error, db
 from datetime import datetime
 
 def item_list(opts, vendor_id, method):
-	if method != "POST":
-		return basic_failure("POST method only")
+	if method != "GET":
+		return basic_failure("GET method only")
 	store_id = opts['vendor_id']
 	if store_id:
 		try:
