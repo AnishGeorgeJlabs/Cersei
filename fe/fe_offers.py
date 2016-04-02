@@ -122,9 +122,9 @@ def create_offers(request):
 	codes=list()
 	try:
 		dt=get_json(request)
-		if(dt['fe_id'])
+		if(dt['fe_id']):
 			fe_id=dt['fe_id']
-		else
+		else:
 			return basic_failure()
 		new_offer=dt['new_offer']
 		old_offer=dt['old_offer']
