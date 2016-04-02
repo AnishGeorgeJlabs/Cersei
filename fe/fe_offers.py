@@ -5,8 +5,9 @@ from django.views.decorators.csrf import csrf_exempt
 import re
 from . import db,jsonResponse,basic_success,basic_failure,basic_error ,get_json
 import json
-import calendar
 from datetime import datetime
+import calendar
+from datetime import date
 failure = dumps({"success": 0})
 
 @csrf_exempt
@@ -121,26 +122,30 @@ def create_offers(request):
 	codes=list()
 	try:
 		dt=get_json(request)
-		fe_id=dt['fe_id']
+		if(dt['fe_id'])
+			fe_id=dt['fe_id']
+		else
+			return basic_failure()
 		new_offer=dt['new_offer']
 		old_offer=dt['old_offer']
-		total_offer=dt['count']
-		dataa=list()
 		countt=0
-		all_offers_id=list()
+		data1={}
+		data1['new_offer'] = list()
+		data1['old_offer'] = list()
 		for new in new_offer:
-			DOM = (new['dom']).split("-")
-			day = calendar.monthrange(int(str(DOM[0])) , int(str(DOM[1])))[1]
-			DM=datetime.strptime(new['dom']+"-"+str(day) , "%Y-%m-%d")
-			DOE = (new['doe']).split("-")
-			day = calendar.monthrange(int(str(DOE[0])) , int(str(DOE[1])))[1]
-			DE=datetime.strptime(new['doe']+"-"+str(day) , "%Y-%m-%d")
+			dom = [int(n) for n in (new['dom']).split("-")]
+			DOM = date(dom[0] , dom[1] , dom[2])
+			total_month = int(new['shelf_life'])+dom[1]
+			dom[0] = dom[0]+int(total_month/12)
+			dom[1] = total_month%12
+			DOE=date(dom[0] , dom[1],dom[2])
 			item_id=new['item_id']
 			v_id=new['vendors']
 			points=new['points']
 			vendor_list = list()
 			offer_id = max1
 			max1=max1+1;
+			all_offers_id = list()
 			code={}
 			for v in v_id:
 				vendor_list.append(v['vid'])
@@ -150,7 +155,8 @@ def create_offers(request):
 					code['codes']=cd
 					code['offer_id']=max1
 					codes.append(code.copy())
-			result=data.insert({"offer_id":max1 , "dom":DM , "expiry":DE , "points":int(points) , "fe_id":[ fe_id] , "item_id":item_id , "vendor_id":vendor_list , "expired":False})
+			result=data.insert({"offer_id":max1 , "dom":datetime.combine(DOM, datetime.min.time()) , "expiry":datetime.combine(DOE, datetime.min.time()) , "points":int(points) , "fe_id":[ fe_id] , "item_id":item_id , "vendor_id":vendor_list , "expired":False})
+			(data1['new_offer']).append(new['offer_id'])
 			all_offers_id.append(max1)
 			countt+=1
 		for old in old_offer:
@@ -167,15 +173,17 @@ def create_offers(request):
 					code['offer_id']=offer_id
 					codes.append(code.copy())
 			result = data.find_one_and_update({"offer_id":offer_id} ,{	"$addToSet":{"fe_id":fe_id,"vendor_id":{"$each":vendor_list}	}})
+			(data1['old_offer']).append(offer_id)
 			all_offers_id.append(offer_id)
 			countt+=1
 		data=db.codes_alt
 		result = data.insert_many(codes)
 		data=db.fe_db
 		result = data.find_one_and_update({"fe_id":int(fe_id)} , {"$addToSet":{"my_offer":{"$each":all_offers_id}}})
-		return basic_success(countt)
+		data1['count']=countt
+		return basic_success(data1)
 	except Exception as e:
-		return basic_failure(str(e))
+		return basic_success(data1)
 	
 		
 	
