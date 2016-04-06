@@ -138,7 +138,11 @@ def create_offers(request):
 			total_month = int(new['shelf_life'])+dom[1]
 			dom[0] = dom[0]+int(total_month/12)
 			dom[1] = total_month%12
-			DOE=date(dom[0] , dom[1],dom[2])
+			try:
+				DOE=date(dom[0] , dom[1],dom[2])
+			except:
+				p = calendar.monthrange(dom[0] , dom[1])
+				DOE=date(dom[0] , dom[1],p[1])
 			item_id=new['item_id']
 			v_id=new['vendors']
 			points=new['points']
