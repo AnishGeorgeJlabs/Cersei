@@ -33,6 +33,7 @@ def order_list(opts, vendor_id, method):
 				"_id": 0,
 				"order_id": 1,
 				"status": "$status.status",
+				"pts":1,
 				"address": 1,
 				"timestamp": 1,
 				"order.qty": 1,
@@ -53,6 +54,7 @@ def order_list(opts, vendor_id, method):
 				"status": "$status.status",
 				"address": 1,
 				"timestamp": 1,
+				"pts":1
 				"order.qty": 1,
 				"order.price": 1
 			}}
