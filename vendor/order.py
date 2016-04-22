@@ -140,7 +140,7 @@ def inner_scan(opts, vendor_id, method):
 	for qrcode in qrcodes['order']:
 		barcodes.append(qrcode['barcode'])
 	offer = db.offers_alt.find_one({"offer_id":int(code_data['offer_id'])})
-	item = db.items_alt.find_one({"item_id": offer['item_id']}, {"_id": False, "name": 1, "barcode": 1, "img":1 , "weight":1})
+	item = db.items_alt.find_one({"item_id": offer['item_id']}, {"_id": False, "name": 1, "barcode": 1,"price":1, "img":1 , "weight":1})
 	if item['barcode'] in barcodes:
 		return basic_success({
 			"code": code,
@@ -165,7 +165,7 @@ def new_scan(opts, vendor_id, method):
 		return basic_failure("Already Used")
 	else:
 		offer = db.offers_alt.find_one({"offer_id":int(data['offer_id'])})
-		item = db.items_alt.find_one({"item_id": offer['item_id']}, {"_id": False, "name": 1, "barcode": 1, "img":1 , "weight":1})
+		item = db.items_alt.find_one({"item_id": offer['item_id']}, {"_id": False, "name": 1, "barcode": 1,"price":1, "img":1 , "weight":1})
 		return basic_success({
 			"code": code,
 			"pts": offer['points'],
