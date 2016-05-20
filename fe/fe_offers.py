@@ -57,7 +57,39 @@ def list_offers(request):
 		fe = data.find_one({"fe_id":int(fe_id)} , {"_id":False})
 		if not fe:
 			return basic_failure("Not found")
-		company_id = fe['company_id']
+		data = db.offers_alt
+		offer_result = data.find({"fe_id":int(fe_id)} , {"_id":False})
+		data=db.codes_alt
+		codes=list(data.aggregate( [
+			{
+				"$match":{
+					"used":False
+				}
+			},
+			{ 
+				'$group':{
+					'_id':"$offer_id" ,
+					"count": {"$sum": 1}
+				}
+			},
+			{
+				"$project": {
+					"offer_id": "$_id",
+					"_id": 0 , "count":1 
+				}
+			}
+		]))
+		
+		offer_data=list();
+		for offer_res in offer_result:
+			offer_res.update({'remaining_codes':0})
+			offer_data.append(offer_res)
+		for offer_res in offer_data:
+			for code in codes:
+				if code['offer_id'] is offer_res['offer_id']:
+					offer_res['remaining_codes']=code['count']
+		return basic_success(offer_data)
+		'''company_id = fe['company_id']
 		data=db.items_alt
 		result=data.find({"company_id":{"$in":company_id}} , {"_id":False})
 		items_id=list()
@@ -73,9 +105,8 @@ def list_offers(request):
 			{ 
 				'$group':{
 					'_id':"$offer_id" ,
-					"vendors":{
-						'$addToSet':"$vendor_id"
-					},
+					"vendors":"$vendor_id"
+					,
 					"count": {"$sum": 1}
 				}
 			},
@@ -99,6 +130,7 @@ def list_offers(request):
 				'$project': {
 				  'DM': { '$dateToString': { 'format': "%Y/%m", 'date': "$dom" } },
 				  'DE': { '$dateToString': { 'format': "%Y/%m", 'date': "$expiry" } },
+				  'approved':"$approved",
 				  "_id":0,
 				  "offer_id":1 , "points":1 , 'item_id':1 
 			   }
@@ -111,9 +143,10 @@ def list_offers(request):
 				if r['offer_id']==res['offer_id']:
 					r['vendors']=res['vendors']
 					result1.append(r)
-		return basic_success(result1)
-	except:
-		return basic_failure()
+		return basic_success(result1)'''
+		
+	except Exception as e:
+		return basic_failure(str(e))
 @csrf_exempt
 def create_offers(request):
 	
