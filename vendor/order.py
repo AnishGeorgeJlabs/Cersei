@@ -20,45 +20,75 @@ def order_list(opts, vendor_id, method):
 
     # Get the status required
 	status = opts.get("status")
+	type = opts.get("type")
 	# Data fetch from db
-	if status:
-		data = list(db.orders.aggregate([
-			{"$match": {
-				"vendor_id": vendor_id,
-				"status.0.status": status
-				
-			}},
-			{"$sort": {"timestamp": -1}},
-			{"$project": {
-				"_id": 0,
-				"order_id": 1,
-				"status": "$status.status",
-				"pts":1,
-				"address": 1,
-				"timestamp": 1,
-				"order.qty": 1,
-				"order.price": 1
-			}}
-		]))
+	if type:
+		if type == "new":
+			type_array = ["placed"]
+		elif type == "past":
+			type_array = ["delivered" , "cancelled"]
+		elif type == "current":
+			type_array = ["ready" , "accepted" , "delayed" , "processed"]
+		else:
+			return basic_error("Type Not defined")
+		
+		if type_array:
+			data = list(db.orders.aggregate([
+				{"$match": {
+					"vendor_id": vendor_id,
+					"status.0.status": {'$in':type_array} ,
+					
+				}},
+				{"$sort": {"timestamp": -1}},
+				{"$project": {
+					"_id": 0,
+					"order_id": 1,
+					"status": "$status.status",
+					"pts":1,
+					"address": 1,
+					"timestamp": 1,
+					"order.qty": 1,
+					"order.price": 1
+				}}
+			]))
 	else:
-		data = list(db.orders.aggregate([
-			{"$match": {
-				"vendor_id": vendor_id,
-				"status.0.status": status
-				
-			}},
-			{"$sort": {"timestamp": -1}},
-			{"$project": {
-				"_id": 0,
-				"order_id": 1,
-				"status": "$status.status",
-				"address": 1,
-				"timestamp": 1,
-				"pts":1,
-				"order.qty": 1,
-				"order.price": 1
-			}}
-		]))
+		if status:
+			data = list(db.orders.aggregate([
+				{"$match": {
+					"vendor_id": vendor_id,
+					"status.0.status": status
+					
+				}},
+				{"$sort": {"timestamp": -1}},
+				{"$project": {
+					"_id": 0,
+					"order_id": 1,
+					"status": "$status.status",
+					"pts":1,
+					"address": 1,
+					"timestamp": 1,
+					"order.qty": 1,
+					"order.price": 1
+				}}
+			]))
+		else:
+			data = list(db.orders.aggregate([
+				{"$match": {
+					"vendor_id": vendor_id
+					
+				}},
+				{"$sort": {"timestamp": -1}},
+				{"$project": {
+					"_id": 0,
+					"order_id": 1,
+					"status": "$status.status",
+					"address": 1,
+					"timestamp": 1,
+					"pts":1,
+					"order.qty": 1,
+					"order.price": 1
+				}}
+			]))
     # Transform the data to get the price and stuff, todo: debatable
 	for record in data:
 		record['status'] = record['status'][0]
