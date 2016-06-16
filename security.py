@@ -6,7 +6,7 @@ from . import db, get_json, basic_failure, basic_error, basic_success
 collection_map = {
     "user": "users",
     "vendor": "vendors",
-    "fe": "fe"
+    "fe": "fe_db"
 }
 @csrf_exempt
 def login(request):
@@ -34,6 +34,7 @@ def login(request):
         })
     else:
         return basic_failure("Unauthorized access")
+
 
 def fake_login(request):
     return basic_success({

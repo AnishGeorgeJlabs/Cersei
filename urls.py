@@ -49,7 +49,7 @@ urlpatterns = [
     
     # ------------ Auth URL's ---------------------------
     url(r'^auth/login$', security.login),
-    url(r'^auth/change_pass$', security.change_password),
+	url(r'^auth/change_pass$', security.change_password),
 ]
 
 
