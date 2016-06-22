@@ -117,8 +117,8 @@ def update_order(opts, vendor_id, method):
     }
 
     if status == "cancelled":
-        db.orders.update_one({"order_id": order_id, "vendor_id": vendor_id}, {"$push": push_query})
-        return basic_success()
+        res=db.orders.update_one({"order_id": order_id, "vendor_id": vendor_id}, {"$push": push_query})
+        return basic_success((res.modified_count > 0))
     elif status == "accepted":
         data = db.orders.find_one({"order_id": order_id, "vendor_id": vendor_id})
         if not data:
