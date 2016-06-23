@@ -16,7 +16,7 @@ def item_list(opts, vendor_id, method):
 				temp=db.codes_alt.find({"offer_id":d['offer_id']  , "code":{'$exists':True}} , {"_id":False ,"code":True})
 				for t in temp:
 					(data['data']['qrcodes']).append(t['code'])
-				res.append(data)
+				res.append(data['data'])
 			return basic_success(res)
 		except:
 			return basic_error("Invalid Store ID");
