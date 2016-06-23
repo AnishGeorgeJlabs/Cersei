@@ -2,12 +2,22 @@ from . import basic_success, basic_failure, basic_error, db
 from datetime import datetime
 
 def item_list(opts, vendor_id, method):
-	if method != "GET":
-		return basic_failure("GET method only")
+	if method != "POST":
+		return basic_failure("POST method only")
 	store_id = opts['vendor_id']
+	res=list();
 	if store_id:
 		try:
-			return basic_success(db.items_alt.find({"store_id" :int(store_id)} , {"_id":False}))
+			data2= db.offers_alt.find({"vendor_id" :int(store_id)} , {"_id":False})
+			for d in data2:
+				data={};
+				data['data']= db.items_alt.find_one({"item_id" :d['item_id']} , {"_id":False})
+				data['data']['qrcodes']=list();
+				temp=db.codes_alt.find({"offer_id":d['offer_id']  , "code":{'$exists':True}} , {"_id":False ,"code":True})
+				for t in temp:
+					(data['data']['qrcodes']).append(t['code'])
+				res.append(data)
+			return basic_success(res)
 		except:
 			return basic_error("Invalid Store ID");
 	else:
