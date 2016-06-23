@@ -25,7 +25,7 @@ def item_list(opts, vendor_id, method):
 	
 	
 def order_list(opts, vendor_id, method):
-	if method != "POST":
+	if method != "GET":
 		return basic_failure("GET method only")
 
     # Get the status required
