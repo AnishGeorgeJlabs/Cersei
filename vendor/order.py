@@ -25,12 +25,13 @@ def item_list(opts, vendor_id, method):
 	
 	
 def order_list(opts, vendor_id, method):
-	if method != "GET":
+	if method != "POST":
 		return basic_failure("GET method only")
 
     # Get the status required
 	status = opts.get("status")
 	type = opts.get("type")
+	payment = opts.get("mode")
 	# Data fetch from db
 	if type:
 		if type == "new":
@@ -58,6 +59,7 @@ def order_list(opts, vendor_id, method):
 					"address": 1,
 					"timestamp": 1,
 					"order.qty": 1,
+					"payment_mode":1,
 					"order.price": 1
 				}}
 			]))
@@ -78,6 +80,27 @@ def order_list(opts, vendor_id, method):
 					"address": 1,
 					"timestamp": 1,
 					"order.qty": 1,
+					"payment_mode":1,
+					"order.price": 1
+				}}
+			]))
+		elif payment:
+			data = list(db.orders.aggregate([
+				{"$match": {
+					"vendor_id": vendor_id, 
+					"payment_mode":payment
+					
+				}},
+				{"$sort": {"timestamp": -1}},
+				{"$project": {
+					"_id": 0,
+					"order_id": 1,
+					"status": "$status.status",
+					"address": 1,
+					"timestamp": 1,
+					"pts":1,
+					"order.qty": 1,
+					"payment_mode":1,
 					"order.price": 1
 				}}
 			]))
@@ -96,6 +119,7 @@ def order_list(opts, vendor_id, method):
 					"timestamp": 1,
 					"pts":1,
 					"order.qty": 1,
+					"payment_mode":1,
 					"order.price": 1
 				}}
 			]))
