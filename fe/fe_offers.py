@@ -28,10 +28,50 @@ def list_item(request):
 		return basic_success(result)
 	except:
 		return basic_failure()
+	
+@csrf_exempt
+def login(request):
+	m=db.credentials.find_one({"username":request.GET['username']})
+	if db.credentials.count({"username":request.GET['username']}) > 0:
+		if m['password'] == request.GET['password']:
+			request.session['fe_id'] = m['fe_id']
+			return basic_success("You are logged in ")
+		else:
+			return basic_error("Your username and password didn't match.")
+	else:
+		return basic_error("Your username and password didn't match.")
+		
+
+def logout(request):
+	try:
+		del request.session['fe_id']
+	except KeyError:
+		pass
+	return basic_success("You're logged out.")		
+	
 @csrf_exempt
 def list_vendor(request):
 	try:
 		fe_id = request.GET['fe_id']
+		
+	except:
+		return basic_failure("Inavalid key parameters")
+	try:
+		data=db.fe_db
+		fe = data.find_one({"fe_id":int(fe_id)} , {"_id":False})
+		if not fe:
+			return basic_failure("Not found")
+		mystores = fe['my_store']	
+		data=db.vendors_alt
+		result=data.find(projection={"_id":False , "vendor_id":1 , "name":1 , "address.address":1})
+		return basic_success({"stores":result , "mystore":mystores})
+	except:
+		return basic_failure()
+
+@csrf_exempt
+def list_vendor1(request):
+	try:
+		fe_id = request.session['fe_id']
 		
 	except:
 		return basic_failure("Inavalid key parameters")
@@ -172,6 +212,7 @@ def create_offers(request):
 			dom = [int(n) for n in (new['dom']).split("-")]
 			DOM = date(dom[0] , dom[1] , dom[2])
 			total_month = int(new['shelf_life'])+dom[1]
+			d=dom
 			dom[0] = dom[0]+int(total_month/12)
 			dom[1] = total_month%12
 			try:
@@ -223,7 +264,7 @@ def create_offers(request):
 		data1['count']=countt
 		return basic_success(data1)
 	except Exception as e:
-		return basic_success(data1)
+		return basic_error(str(e))
 	
 		
 	

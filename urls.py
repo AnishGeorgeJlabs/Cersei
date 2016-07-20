@@ -42,8 +42,11 @@ urlpatterns = [
 	url(r'^consumer/offers',  offers.offers),
     
 	#-------------FE APP URL's ---------------------------
+	url(r'^feapp/login', fe_offers.login),
+	url(r'^feapp/logout', fe_offers.logout),
 	url(r'^feapp/list_item', fe_offers.list_item),
 	url(r'^feapp/list_vendor', fe_offers.list_vendor),
+	url(r'^feapp/list_vendor1', fe_offers.list_vendor1),
 	url(r'^feapp/list_offer', fe_offers.list_offers),
 	url(r'^feapp/create_offers', fe_offers.create_offers),
     
