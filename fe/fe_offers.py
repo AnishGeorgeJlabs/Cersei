@@ -35,11 +35,11 @@ def login(request):
 	if db.credentials.count({"username":request.GET['username']}) > 0:
 		if m['password'] == request.GET['password']:
 			request.session['fe_id'] = m['fe_id']
-			return basic_success("You are logged in ")
+			return basic_success(request.session.session_key )
 		else:
-			return basic_error("Your username and password didn't match.")
+			return basic_error("Invalid Username And Password.")
 	else:
-		return basic_error("Your username and password didn't match.")
+		return basic_error("Invalid Username And Password.")
 		
 
 def logout(request):
@@ -83,9 +83,9 @@ def list_vendor1(request):
 		mystores = fe['my_store']	
 		data=db.vendors_alt
 		result=data.find(projection={"_id":False , "vendor_id":1 , "name":1 , "address.address":1})
-		return basic_success({"stores":result , "mystore":mystores})
-	except:
-		return basic_failure()
+		return basic_success({"stores":result , "mystore":mystores , "ttl":request.session.get_expiry_date()})
+	except Exception as e:
+		return basic_failure(str(e))
 @csrf_exempt
 def list_offers(request):
 	try:
