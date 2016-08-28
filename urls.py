@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from . import mock, security
 from .vendor import order, account
+from .retailer import retailer
 from .consumer import show_offers, search_location,rewards, offers , scancode
 from .fe import fe_offers
 @csrf_exempt
@@ -25,6 +26,12 @@ def test(request):
 
 urlpatterns = [
     url(r'^$', test),
+    # ------------ Onboarding URL's -------------------------
+    url(r'^add_retailer$', security.m_auth(retailer.add_retailer)),
+    url(r'^add_item$', security.m_auth(retailer.add_item)),
+    url(r'^show_retailer$', security.m_auth(retailer.show_retailer)),
+    url(r'^show_item$', security.m_auth(retailer.show_item)),
+
 	# ------------ Vendor URL's -------------------------
     url(r'^vendor/order/list$', security.auth(order.order_list)),
     url(r'^vendor/order/details$', mock.details),
@@ -45,13 +52,15 @@ urlpatterns = [
 	url(r'^feapp/login', fe_offers.login),
 	url(r'^feapp/logout', fe_offers.logout),
 	url(r'^feapp/list_item', fe_offers.list_item),
-	url(r'^feapp/list_vendor1', fe_offers.list_vendor1),
+	url(r'^feapp/list_vendor1', security.fe_auth(fe_offers.list_vendor1)),
 	url(r'^feapp/list_vendor', fe_offers.list_vendor),
 	url(r'^feapp/list_offer', fe_offers.list_offers),
-	url(r'^feapp/create_offers', fe_offers.create_offers),
+	url(r'^feapp/create_offers', security.fe_auth(fe_offers.create_offers)),
     
     # ------------ Auth URL's ---------------------------
     url(r'^auth/login$', security.login),
+    url(r'^auth/mlogin$', security.m_login),
+    url(r'^auth/fe/login$', security.fe_login),
 	url(r'^auth/change_pass$', security.change_password),
 ]
 

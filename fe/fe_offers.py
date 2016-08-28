@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 import re
 from . import db,jsonResponse,basic_success,basic_failure,basic_error ,get_json
 import json
-from datetime import datetime
+from datetime import datetime , date , timedelta
 import calendar
 from datetime import date
 failure = dumps({"success": 0})
@@ -69,26 +69,31 @@ def list_vendor(request):
 		return basic_failure()
 
 @csrf_exempt
-def list_vendor1(request):
-	try:
-		fe_id = request.session['fe_id']
-		
-	except:
-		return basic_failure("Inavalid key parameters")
+def list_vendor1(opts , id , method):
 	try:
 		data=db.fe_db
-		fe = data.find_one({"fe_id":int(fe_id)} , {"_id":False})
+		fe = data.find_one({"fe_id":int(id)} , {"_id":False})
 		if not fe:
 			return basic_failure("Not found")
 		mystores = fe['my_store']	
 		data=db.vendors_alt
 		result=data.find(projection={"_id":False , "vendor_id":1 , "name":1 , "address.address":1})
-		return basic_success({"stores":result , "mystore":mystores , "ttl":request.session.get_expiry_date()})
+		return basic_success({"stores":result , "mystore":mystores })
 	except Exception as e:
 		return basic_failure(str(e))
+
 @csrf_exempt
 def list_offers(request):
+
 	try:
+		regex_http_          = re.compile(r'^HTTP_.+$')
+		regex_content_type   = re.compile(r'^CONTENT_TYPE$')
+		regex_content_length = re.compile(r'^CONTENT_LENGTH$')
+		request_headers = {}
+		for header in request.META:
+			if regex_http_.match(header) or regex_content_type.match(header) or regex_content_length.match(header):
+				request_headers[header] = request.META[header]
+		return basic_success([request.get_host() ,request_headers ])
 		try:
 			fe_id = request.GET['fe_id']
 		except:
@@ -119,18 +124,29 @@ def list_offers(request):
 				}
 			}
 		]))
+		temp = db.codes_alt.find({'code':{'$exists':True }  ,'offer_id':{'$exists':True}},{'_id' :False });
+		total_count={}
+		for t in temp:
+			 try:
+			 	total_count[t['offer_id']] +=1
+			 except:
+			 	total_count[t['offer_id']] = 1 	
 		
 		offer_data=list();
 		for offer_res in offer_result:
 			offer_res.update({'remaining_codes':0})
+			offer_res.update({'total_codes':0})
 			offer_res['dom']=(offer_res['dom']).strftime("%d/%m/%Y")
-			offer_res['created_on']=(offer_res['created_on']).strftime("%d/%m/%Y")
+			offer_res['created_on']=(offer_res['created_at']).strftime("%d/%m/%Y")
 			offer_res['expiry']=(offer_res['expiry']).strftime("%d/%m/%Y")
 			offer_data.append(offer_res)
 		for offer_res in offer_data:
 			for code in codes:
 				if code['offer_id'] is offer_res['offer_id']:
 					offer_res['remaining_codes']=code['count']
+					if total_count.get(code['offer_id']):
+						offer_res['total_codes']=total_count[code['offer_id']]
+
 		return basic_success(offer_data)
 		'''company_id = fe['company_id']
 		data=db.items_alt
@@ -190,82 +206,64 @@ def list_offers(request):
 		
 	except Exception as e:
 		return basic_failure(str(e))
+
 @csrf_exempt
-def create_offers(request):
+def create_offers(opts , fe_id , method):
 	
-	data=db.offers_alt
-	max1 = max(list(data.distinct("offer_id")))
+	max1 = max(list(db.offers_alt.distinct("offer_id")))
 	codes=list()
 	try:
-		dt=get_json(request)
-		if(dt['fe_id']):
-			fe_id=dt['fe_id']
-		else:
-			return basic_failure()
-		new_offer=dt['new_offer']
-		old_offer=dt['old_offer']
-		countt=0
-		data1={}
-		data1['new_offer'] = list()
-		data1['old_offer'] = list()
+		new_offer=opts['new_offer']
+		old_offer=opts['old_offer']
+		count=0
+		data={}
+		data['new_offer'] = list()
+		data['old_offer'] = list()
 		for new in new_offer:
 			dom = [int(n) for n in (new['dom']).split("-")]
-			DOM = date(dom[0] , dom[1] , dom[2])
+			DM = date(dom[0] , dom[1] , dom[2])
 			total_month = int(new['shelf_life'])+dom[1]
 			d=dom
 			dom[0] = dom[0]+int(total_month/12)
 			dom[1] = total_month%12
 			try:
-				DOE=date(dom[0] , dom[1],dom[2])
+				DE=date(dom[0] , dom[1],dom[2])
 			except:
 				p = calendar.monthrange(dom[0] , dom[1])
-				DOE=date(dom[0] , dom[1],p[1])
+				DE=date(dom[0] , dom[1],p[1])
 			item_id=new['item_id']
 			v_id=new['vendors']
 			points=new['points']
 			vendor_list = list()
-			offer_id = max1
 			max1=max1+1;
+			offer_id = max1
 			all_offers_id = list()
 			code={}
-			for v in v_id:
-				vendor_list.append(v['vid'])
-				for cd in v['qrcodes']:
-					code['used']=False
-					code['vendor_id']=v['vid']
-					code['codes']=cd
-					code['offer_id']=max1
-					codes.append(code.copy())
-			result=data.insert({"offer_id":max1 , "dom":datetime.combine(DOM, datetime.min.time()) , "expiry":datetime.combine(DOE, datetime.min.time()) , "points":int(points) , "fe_id":[ fe_id] , "item_id":item_id , "vendor_id":vendor_list , "expired":False})
-			(data1['new_offer']).append(new['offer_id'])
+			code['used']=False
+			code['vendor_id']=v_id['vid']
+			code['codes']=v_id['qrcodes']
+			code['offer_id']=max1
+			codes.append(code.copy())
+			result=db.offers_alt.insert({"offer_id":max1 , "dom":datetime.combine(DM, datetime.min.time()) , "expiry":datetime.combine(DE, datetime.min.time()) ,"created_on":datetime.now() + timedelta(hours=5,minutes=30) ,  "points":int(points) , "fe_id":fe_id , "item_id":item_id , "vendor_id":v_id['vid'] , "expired":False , "approved":False})
+			(data['new_offer']).append(new['offer_id'])
 			all_offers_id.append(max1)
-			countt+=1
+			count+=1
 		for old in old_offer:
-			vid=old['vendors']
 			offer_id=old['offer_id']
-			vendor_list = list()
 			code={}
-			for v in vid:
-				vendor_list.append(v['vid'])
-				for cd in v['qrcodes']:
-					code['used']=False
-					code['vendor_id']=v['vid']
-					code['codes']=cd
-					code['offer_id']=offer_id
-					codes.append(code.copy())
-			result = data.find_one_and_update({"offer_id":offer_id} ,{	"$addToSet":{"fe_id":fe_id,"vendor_id":{"$each":vendor_list}	}})
-			(data1['old_offer']).append(offer_id)
+			code['used']=False
+			code['vendor_id']=old['vid']
+			code['codes']=old['qrcodes']
+			code['offer_id']=offer_id
+			codes.append(code.copy())
+			result = db.offers_alt.find_one_and_update({"offer_id":offer_id} ,{	 '$set':{"updated_at":datetime.now() + timedelta(hours=5,minutes=30)}})
+			(data['old_offer']).append(offer_id)
 			all_offers_id.append(offer_id)
-			countt+=1
-		data=db.codes_alt
-		result = data.insert_many(codes)
-		data=db.fe_db
-		result = data.find_one_and_update({"fe_id":int(fe_id)} , {"$addToSet":{"my_offer":{"$each":all_offers_id}}})
-		data1['count']=countt
-		return basic_success(data1)
+			count+=1
+		result = db.codes_alt.insert_many(codes)
+		result = db.fe_db.find_one_and_update({"fe_id":int(fe_id)} , {"$addToSet":{"my_offer":{"$each":all_offers_id}}})
+		data['count']=count
+		return basic_success(data)
 	except Exception as e:
 		return basic_error(str(e))
-	
-		
-	
-		
+
