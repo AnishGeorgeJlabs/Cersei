@@ -202,7 +202,10 @@ def list_offers(request):
 @csrf_exempt
 def create_offers(opts , fe_id , method):
 	
-	max1 = max(list(db.offers_alt.distinct("offer_id")))
+	try:
+		max1 = max(list(db.offers_alt.distinct("offer_id")))
+	except:
+		max1=0;
 	codes=list()
 	try:
 		new_offer=opts['new_offer']
@@ -216,8 +219,12 @@ def create_offers(opts , fe_id , method):
 			DM = date(dom[0] , dom[1] , dom[2])
 			total_month = int(new['shelf_life'])+dom[1]
 			d=dom
-			dom[0] = dom[0]+int(total_month/12)
-			dom[1] = total_month%12
+			if total_month%12 is 0:
+				dom[0] = dom[0]+int(total_month/12) - 1
+				dom[1] = 12
+			else:
+				dom[0] = dom[0]+int(total_month/12)
+				dom[1]=total_month%12
 			try:
 				DE=date(dom[0] , dom[1],dom[2])
 			except:
