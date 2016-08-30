@@ -129,7 +129,7 @@ def list_offers(request):
 			offer_res.update({'remaining_codes':0})
 			offer_res.update({'total_codes':0})
 			offer_res['dom']=(offer_res['dom']).strftime("%d/%m/%Y")
-			offer_res['created_on']=(offer_res['created_at']).strftime("%d/%m/%Y")
+			offer_res['created_on']=(offer_res['created_on']).strftime("%d/%m/%Y")
 			offer_res['expiry']=(offer_res['expiry']).strftime("%d/%m/%Y")
 			offer_data.append(offer_res)
 		for offer_res in offer_data:
