@@ -96,6 +96,7 @@ def add_item(opts, manager_id, method):
 		data['price']=opts['price']
 		data['weight']=opts['weight']
 		data['mfg']=opts['mfg']
+		data['days']=opts['days']
 		data['month']=opts['months']
 		data['add_by']=manager_id
 		data['created_at']=(datetime.now())
