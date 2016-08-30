@@ -243,7 +243,7 @@ def create_offers(opts , fe_id , method):
 			code['codes']=v_id['qrcodes']
 			code['offer_id']=max1
 			codes.append(code.copy())
-			result=db.offers_alt.insert({"offer_id":max1 , "dom":datetime.combine(DM, datetime.min.time()) , "expiry":datetime.combine(DE, datetime.min.time()) ,"created_on":datetime.now() + timedelta(hours=5,minutes=30) ,  "points":int(points) , "fe_id":fe_id , "item_id":item_id , "vendor_id":v_id['vid'] , "expired":False , "approved":False})
+			result=db.offers_alt.insert({"offer_id":max1 , "dom":datetime.combine(DM, datetime.min.time()) , "expiry":datetime.combine(DE, datetime.min.time()) ,"name":new['name'] , "created_on":datetime.now() + timedelta(hours=5,minutes=30) ,  "points":int(points) , "fe_id":fe_id , "item_id":item_id , "vendor_id":v_id['vid'] , "expired":False , "approved":False})
 			(data['new_offer']).append(new['offer_id'])
 			all_offers_id.append(max1)
 			count+=1
