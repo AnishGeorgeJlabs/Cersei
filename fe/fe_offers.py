@@ -86,14 +86,6 @@ def list_vendor1(opts , id , method):
 def list_offers(request):
 
 	try:
-		regex_http_          = re.compile(r'^HTTP_.+$')
-		regex_content_type   = re.compile(r'^CONTENT_TYPE$')
-		regex_content_length = re.compile(r'^CONTENT_LENGTH$')
-		request_headers = {}
-		for header in request.META:
-			if regex_http_.match(header) or regex_content_type.match(header) or regex_content_length.match(header):
-				request_headers[header] = request.META[header]
-		return basic_success([request.get_host() ,request_headers ])
 		try:
 			fe_id = request.GET['fe_id']
 		except:
