@@ -86,7 +86,6 @@ def list_offers(opts , fe_id , method):
 			offer_res.update({'remaining_codes':0})
 			offer_res.update({'total_codes':0})
 			offer_res['dom']=(offer_res['dom']).strftime("%d/%m/%Y")
-			offer_res['created_at']=(offer_res['created_at']).strftime("%d/%m/%Y")
 			offer_res['expired_on']=(offer_res['expired_on']).strftime("%d/%m/%Y")
 			offer_data.append(offer_res)
 		for offer_res in offer_data:
@@ -106,7 +105,7 @@ def create_offers(opts , fe_id , method):
 	collection = db.offers.find_one(sort=[("offer_id", -1)])
 	try:
 		id = collection['offer_id'];
-		id = cat_id.replace("OF","")
+		id = id.replace("OF","")
 	except:
 		id = "0";
 	pid = int(id)
@@ -131,8 +130,8 @@ def create_offers(opts , fe_id , method):
 			temp['approved']= False
 			temp['item_id']=new['item_id']
 			temp['cashback']=new['cashback']
-			temp['created_at']=(datetime.now())
-			temp['updated_at']=(datetime.now())
+			temp['created_at']=(datetime.now() + timedelta(hours=5,minutes=30))
+			temp['updated_at']=(datetime.now() + timedelta(hours=5,minutes=30))
 			temp['dom'] = datetime.strptime(new['dom'], "%Y-%m-%d")
 			temp['expired_on'] = temp['dom'] + timedelta(days=int(new['shelf_life']))
 			pid+=1
@@ -145,31 +144,38 @@ def create_offers(opts , fe_id , method):
 				code['qrcodes']=x
 				code['offer_id']=temp['offer_id']
 				code['item_id']=new['item_id']
-				code['created_at']=(datetime.now())
+				code['created_at']=(datetime.now() + timedelta(hours=5,minutes=30))
 				codes.append(code.copy())
 				count+=1
 			(data['new_offer']).append(temp.copy())
 			(data1['new_offer']).append(new['offer_id'])
 			
-		'''for old in old_offer:
+		for old in old_offer:
 			offer_id=old['offer_id']
-			code={}
-			code['used']=False
-			code['vendor_id']=old['vid']
-			code['codes']=old['qrcodes']
-			code['offer_id']=offer_id
-			codes.append(code.copy())
-			result = db.offers_alt.find_one_and_update({"offer_id":offer_id} ,{	 '$set':{"updated_at":datetime.now() + timedelta(hours=5,minutes=30)}})
-			(data['old_offer']).append(offer_id)
-			all_offers_id.append(offer_id)
-			count+=1'''
-		result_n = db.offers.insert_many(data['new_offer'])
-		result_c = db.qrcodes.insert_many(codes)
+			for x in old['qrcodes']:
+				code={}
+				code['used']=False
+				code['status']="live"
+				code['retailer_id']=old['vid']
+				code['qrcodes']=x
+				code['offer_id']=offer_id
+				code['item_id']=old['item_id']
+				code['created_at']=(datetime.now() + timedelta(hours=5,minutes=30))
+				codes.append(code.copy())
+				count+=1
+			
+			expired_on = datetime.strptime(old['dom'], "%Y-%m-%d") + timedelta(days=int(old['shelf_life']))
+			result = db.offers.find_one_and_update({"offer_id":offer_id} ,{	 '$set':{"updated_at":datetime.now()  + timedelta(hours=5,minutes=30)  , "cashback":int(old['cashback']) , "dom":datetime.strptime(old['dom'], "%Y-%m-%d") , "expired_on":expired_on , "updated_by":fe_id}})
+			(data1['old_offer']).append(offer_id)
+		if len(data['new_offer']):
+			result_n = db.offers.insert_many(data['new_offer'])
+		if len(codes):
+			result_c = db.qrcodes.insert_many(codes)
 		result = db.FE.find_one_and_update({"fe_id":(fe_id)} , {"$addToSet":{"my_offer":{"$each":all_offers_id}}})
 		data1['codes_count']=count
 		return basic_success(data1)
 	except Exception as e:
-		'''exc_type, exc_obj, exc_tb = sys.exc_info()
+		exc_type, exc_obj, exc_tb = sys.exc_info()
 		fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-		return basic_error([exc_type, fname, exc_tb.tb_lineno])'''
-		return basic_error(str(e))
+		return basic_error([exc_type, fname, exc_tb.tb_lineno , str(e)])
+		#return basic_error(str(e))
