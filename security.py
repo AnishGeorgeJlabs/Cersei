@@ -79,7 +79,7 @@ def fe_login(request):
 		m=db.credentials.find_one({"username":data['username'] , "type":'fe'})
 		if db.credentials.count({"username":data['username']}) > 0:
 			if m['password'] == data['password']:
-				fe_user = db.fe_db.find_one({"fe_id": m['fe_id']} , {"_id":False})
+				fe_user = db.FE.find_one({"fe_id": m['fe_id']} , {"_id":False})
 				result = db.credentials.update_one({"username":data['username'] , "type":'fe'} ,{'$set':{"api_key":api_key,"last_login":datetime.now() + timedelta(hours=5,minutes=30)}} )
 				if result.modified_count:
 					fe_user['api_key'] = api_key
@@ -203,6 +203,7 @@ def fe_auth(handler):
 				return basic_error(key+" missing, unauthorized access")
 		api_key = opts['api_key']
 		fe_id = opts['fe_id']
+		
 		try:
 			if db.credentials.count({"api_key": api_key, 'fe_id': fe_id}) > 0:
 				return handler(opts, fe_id, request.method)

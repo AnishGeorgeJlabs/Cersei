@@ -6,17 +6,14 @@ from . import db, basic_success, basic_failure, basic_error
 from datetime import datetime
 
 @csrf_exempt
-def retailer(request):
-	collection = db.retailer.find_one(sort=[("retailer_id", -1)])
+def show_category(opts, manager_id, method):
+	# ------- Show All Retailers ----------
 	try:
-		retailer_id = collection['retailer_id'];
-		retailer_id = retailer_id.replace("s","")
+		if method != 'POST':
+			return basic_error("POST Method only");
+		return basic_success(db.categories.find({},{"_id":0 , "category_name":1 , "category_id":1}))
 	except:
-		retailer_id = "0";
-	retailer_id = "s" + (str(int(retailer_id) +1)).zfill(4)
-	return basic_success(retailer_id)
-
-
+		return basic_error("Something went wrong!")
 
 @csrf_exempt
 def show_retailer(opts, manager_id, method):
@@ -275,10 +272,11 @@ def add_item(opts, manager_id, method):
 		data['price']=opts['price']
 		data['weight']=opts['weight']
 		data['shelf_life']=opts['shelf_life']
+		data['img']= list()
 		data['add_by']=manager_id
 		data['created_at']=(datetime.now())
 		data['updated_at']=(datetime.now())
 		db.inventory.insert(data);
-		return basic_success(item_id)
+		return basic_success({"item_id":item_id , "company_id":company_id , "category_id":category_id})
 	except:
 		return basic_error("Something went wrong!")

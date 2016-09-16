@@ -140,62 +140,6 @@ def list_offers(request):
 						offer_res['total_codes']=total_count[code['offer_id']]
 
 		return basic_success(offer_data)
-		'''company_id = fe['company_id']
-		data=db.items_alt
-		result=data.find({"company_id":{"$in":company_id}} , {"_id":False})
-		items_id=list()
-		for res in result:
-			items_id.append(res['item_id'])
-		data=db.codes_alt
-		result=list(data.aggregate( [
-			{
-				"$match":{
-					"used":False
-				}
-			},
-			{ 
-				'$group':{
-					'_id':"$offer_id" ,
-					"vendors":"$vendor_id"
-					,
-					"count": {"$sum": 1}
-				}
-			},
-			{
-				"$project": {
-					"offer_id": "$_id",
-					"_id": 0 , "count":1 , "vendors":1
-				}
-			}
-		]))
-		data=db.offers_alt
-		aa = list(data.aggregate([
-			{
-			   "$match":{
-					"expired":False , 
-					"item_id":{
-						"$in":items_id}
-				}
-			},
-			{
-				'$project': {
-				  'DM': { '$dateToString': { 'format': "%Y/%m", 'date': "$dom" } },
-				  'DE': { '$dateToString': { 'format': "%Y/%m", 'date': "$expiry" } },
-				  'approved':"$approved",
-				  "_id":0,
-				  "offer_id":1 , "points":1 , 'item_id':1 
-			   }
-			 }
-		   ]
-		))
-		result1=list()
-		for r in aa:
-			for res in result: 
-				if r['offer_id']==res['offer_id']:
-					r['vendors']=res['vendors']
-					result1.append(r)
-		return basic_success(result1)'''
-		
 	except Exception as e:
 		return basic_failure(str(e))
 
