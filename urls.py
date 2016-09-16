@@ -56,6 +56,7 @@ urlpatterns = [
 	url(r'^fe/list_retailer', security.fe_auth(feapp_offers.list_retailer)),
 	url(r'^fe/list_offer', security.fe_auth(feapp_offers.list_offers)),
 	url(r'^fe/create_offers', security.fe_auth(feapp_offers.create_offers)),
+	url(r'^fe/delete_offers', security.fe_auth(feapp_offers.delete_offers)),	
 	
 	#-------------FE APP URLs ---------------------------
 	url(r'^feapp/login', fe_offers.login),

@@ -52,7 +52,7 @@ def list_offers(opts , fe_id , method):
 		if not fe:
 			return basic_failure("Not found")
 		data = db.offers
-		offer_result = data.find({"fe_id":(fe_id)} , {"_id":False})
+		offer_result = data.find({"fe_id":(fe_id),"deleted_at":{'$exists':False}} , {"_id":False})
 		data=db.qrcodes
 		codes=list(data.aggregate( [
 			{
@@ -179,3 +179,17 @@ def create_offers(opts , fe_id , method):
 		fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 		return basic_error([exc_type, fname, exc_tb.tb_lineno , str(e)])
 		#return basic_error(str(e))
+		
+@csrf_exempt
+def delete_offers(opts , fe_id , method):
+	try:
+		if opts.get("offer_id"):
+			result = db.offers.update_one({"offer_id":opts.get("offer_id")} ,{	 '$set':{"deleted_at":datetime.now()  + timedelta(hours=5,minutes=30)  , "deleted_by":fe_id}} )
+			if result.modified_count:
+				return basic_success("Offer Deleted")
+			else:
+				return basic_failure("Offer not found")
+		else:
+			return basic_failure("Offer ID missing")
+	except Exception as e:
+		return basic_error("Something went wrong")
