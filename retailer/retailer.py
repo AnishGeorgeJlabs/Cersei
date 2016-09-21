@@ -44,7 +44,7 @@ def edit_retailer(opts, manager_id, method):
 			return basic_error("POST Method only");
 		if 'retailer_id' not in opts:
 			return basic_error("Retailer ID missing")
-		for key in ['name' , 'location' , "contact" ,'email','address' , 'areas']:
+		for key in ['name' , 'location' , "contact" ,'email','address' , 'areas','min_order']:
 			if key not in opts:
 				return basic_error(key+" missing")
 		if (opts['location']).get('lat') and (opts['location']).get('lon'):
@@ -59,6 +59,7 @@ def edit_retailer(opts, manager_id, method):
 				data['email']=opts['email']
 				data['address']=opts['address']
 				data['areas']=opts['areas']
+				data['min_order']=opts['min_order']
 				data['add_by']=h['add_by']
 				data['updated_by']=manager_id
 				data['created_at']=h['created_at']
@@ -164,7 +165,7 @@ def add_retailer(opts, manager_id, method):
 	try:
 		if method != 'POST':
 			return basic_error("POST Method only");
-		for key in ['name' , 'location' , "contact" ,'email','address' , 'areas']:
+		for key in ['name' , 'location' , "contact" ,'email','address' , 'areas' , "min_order"]:
 			if key not in opts:
 				return basic_error(key+" missing")
 		# Get Retailer ID to add
@@ -184,6 +185,7 @@ def add_retailer(opts, manager_id, method):
 			data['email']=opts['email']
 			data['address']=opts['address']
 			data['areas']=opts['areas']
+			data['min_order']=opts['min_order']
 			data['add_by']=manager_id
 			data['created_at']=(datetime.now())
 			data['updated_at']=(datetime.now())

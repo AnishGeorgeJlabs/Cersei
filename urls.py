@@ -6,6 +6,7 @@ from .vendor import order, account
 from .retailer import retailer
 from .consumer import show_offers, search_location,rewards, offers , scancode
 from .fe import fe_offers , feapp_offers
+from .fe_admin import feadmin
 @csrf_exempt
 def test(request):
     if request.method == "GET":
@@ -58,6 +59,14 @@ urlpatterns = [
 	url(r'^fe/create_offers', security.fe_auth(feapp_offers.create_offers)),
 	url(r'^fe/delete_offers', security.fe_auth(feapp_offers.delete_offers)),	
 	
+	#-------------FE Admin APP URLs ---------------------------
+	url(r'^feadmin/create_user', security.fe_auth(feadmin.create_feuser)),
+    url(r'^feadmin/list_fe', security.fe_auth(feadmin.list_fe)),
+    url(r'^feadmin/remove', security.fe_auth(feadmin.remove_fe)),
+    url(r'^feadmin/approve', security.fe_auth(feadmin.approve_offer)),
+    url(r'^feadmin/send_msg', security.fe_auth(feadmin.send_message)),
+    url(r'^feadmin/show_msg', security.fe_auth(feadmin.show_messages)),
+		
 	#-------------FE APP URLs ---------------------------
 	url(r'^feapp/login', fe_offers.login),
 	url(r'^feapp/logout', fe_offers.logout),

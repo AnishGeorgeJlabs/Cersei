@@ -52,7 +52,10 @@ def list_offers(opts , fe_id , method):
 		if not fe:
 			return basic_failure("Not found")
 		data = db.offers
-		offer_result = data.find({"fe_id":(fe_id),"deleted_at":{'$exists':False}} , {"_id":False})
+		if fe['level'] is 1:
+			offer_result = data.find({"fe_id":{'$in':fe['fe'] },"deleted_at":{'$exists':False}} , {"_id":False})
+		else:
+			offer_result = data.find({"fe_id":fe_id,"deleted_at":{'$exists':False}} , {"_id":False})
 		data=db.qrcodes
 		codes=list(data.aggregate( [
 			{
@@ -175,10 +178,10 @@ def create_offers(opts , fe_id , method):
 		data1['codes_count']=count
 		return basic_success(data1)
 	except Exception as e:
-		exc_type, exc_obj, exc_tb = sys.exc_info()
+		'''exc_type, exc_obj, exc_tb = sys.exc_info()
 		fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-		return basic_error([exc_type, fname, exc_tb.tb_lineno , str(e)])
-		#return basic_error(str(e))
+		return basic_error([exc_type, fname, exc_tb.tb_lineno , str(e)])'''
+		return basic_error(str(e))
 		
 @csrf_exempt
 def delete_offers(opts , fe_id , method):
