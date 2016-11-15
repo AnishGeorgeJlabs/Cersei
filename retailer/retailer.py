@@ -150,6 +150,10 @@ def edit_item(opts, manager_id, method):
 			data['updated_by']=manager_id
 			data['updated_at']=(datetime.now())
 			data['add_by']= h['add_by']
+			if 'img' in opts:
+				data['img'] = opts['img']
+			else:
+				data['img']=["http://jlabs.co/no_image.png"]
 			data['created_at']=h['created_at']
 			db.inventory.insert(data);
 			return basic_success(opts['item_id'])
@@ -276,6 +280,7 @@ def add_item(opts, manager_id, method):
 		data['shelf_life']=opts['shelf_life']
 		data['img']= list()
 		data['add_by']=manager_id
+		data['img']=["http://jlabs.co/no_image.png"]
 		data['created_at']=(datetime.now())
 		data['updated_at']=(datetime.now())
 		db.inventory.insert(data);

@@ -51,6 +51,7 @@ urlpatterns = [
     url(r'^consumer/reward',rewards.activeRewards),
 	url(r'^consumer/code' , scancode.scanCode),
 	url(r'^consumer/offers',  offers.offers),
+    url(r'^consumer/retailer',  offers.retailer),
     
 	#-------------FE APP URLs ---------------------------
 	url(r'^fe/list_item', security.fe_auth(feapp_offers.list_item)),
