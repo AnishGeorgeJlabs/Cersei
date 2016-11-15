@@ -8,9 +8,22 @@ import json
 from datetime import datetime
 
 failure = dumps({"success":0})
-
 @csrf_exempt
 def offers(request):
+	try:
+		location = request.GET['location']
+		area=request.GET['area']
+	except:
+		return basic_error("Invalid Parameters")
+	
+	data=db.index_offers
+	query = {"area":area , "location":location}
+	result = data.find(query ,{"_id":False })
+	return basic_success(result)
+	
+	
+@csrf_exempt
+def list_offers(request):
 	try:
 		location = request.GET['location']
 		area=request.GET['area']
@@ -60,20 +73,20 @@ def offers(request):
 		{ 
 			'$group':{
 				'_id':"$offer_id" ,
-				"codes": {"$addToSet":"$qrcodes" }
+				"count": {"$sum":1 }
 			}
 		},
 		{
 			"$project": {
 				"offer_id": "$_id",
-				"_id": 0 , "codes":1 
+				"_id": 0 , "count":1 
 			}
 		}
 	]))
 	for r1 in offers_data:
 		for code in codes:
 			if code['offer_id']  == r1['offer_id']:
-				r1['qrcodes']	 = code['codes']
+				r1['remaining_qrcodes']	 = code['count']
 	return basic_success(offers_data);
 
 @csrf_exempt
