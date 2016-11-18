@@ -95,13 +95,13 @@ def list_offers(request):
 		return basic_error("Invalid Parameters")
 	
 	data=db.retailer
-	query = {"areas.locality": location, "areas.sub-locality":area}
+	query = {"areas.locality": location, "areas.sub-locality":area }
 	result = data.find(query ,{"_id":False , "retailer_id":True })
 	data =db.offers
 	retailers = list()
 	for r in result:
 		retailers.append(r['retailer_id'])
-	query = {"retailer_id":{'$in':retailers} , "approved":True}
+	query = {"retailer_id":{'$in':retailers} , "approved":True ,  "deleted_at" :{'$exists':False}}
 	result1 = data.find(query  ,  {"_id":False})
 	offers=list()
 	items = list()
