@@ -46,7 +46,7 @@ urlpatterns = [
     url(r'^vendor/account', security.auth(account.vendor_account)),
 
     # ------------ Consumer URLs -----------------------
-   # url(r'^consumer/location',  search_location.search_query),
+    url(r'^consumer/location',  search_location.search_query),
     url(r'^consumer/show_offers',  show_offers.show_offers),
     url(r'^consumer/reward',rewards.activeRewards),
 	url(r'^consumer/code' , scancode.scanCode),
