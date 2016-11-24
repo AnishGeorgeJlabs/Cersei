@@ -10,6 +10,25 @@ from datetime import datetime
 
 failure = dumps({"success":0})
 @csrf_exempt
+def list_location(request):
+	try:
+		results = db.retailer.find({} , {"areas.locality":1 ,"areas.sub-locality":1  , "_id":0 })
+		if results:
+			location = dict()
+			for result in results:
+				for area in result['areas']:
+					try:
+						(location[(area['locality']).lower()]).add((area['sub-locality']).lower())
+					except:
+						location[(area['locality']).lower()]=set()
+						(location[(area['locality']).lower()]).add((area['sub-locality']).lower())
+			return basic_success(location)
+		else:
+			return basic_error("Details not found")
+	except Exception as e:
+		return basic_failure("Something went wrong!"+str(e))
+
+@csrf_exempt
 def order(request):
 	try:
 		data = get_json(request)
@@ -17,45 +36,45 @@ def order(request):
 			for key in ["user_id" , "name" , "address" , "email"  , "phone" , "order"]:
 				if key not in data:
 					return basic_error(key+" missing")
-				search_term = datetime.today().strftime("%Y%m%d")
-				collection = db.orders.find_one({"order_id":re.compile(search_term, re.IGNORECASE)})
-				try:
-					order_id = collection['order_id'];
-					order_id = order_id.replace(search_term,"")
-					
-				except:
-					order_id = 0
-				order_id = datetime.today().strftime("%Y%m%d") + (str(int(order_id) +1)).zfill(6)
-				i=0;
-				order_data = list()
-				for order in data['order']:
-					order_temp = {}
-					order_temp['order_id'] =order_id
-					order_temp['created_at']=(datetime.now() )
-					order_temp['suborder_id'] = order_id	+ (str(i +1)).zfill(2)
-					order_temp['user_id'] =data['user_id']
-					order_temp['name'] = data['name']
-					order_temp['email'] = data['email']
-					order_temp['address'] = data['address'] 
-					order_temp['phone'] = data['phone']
-					order_temp['retailer_id'] = order['retailer_id']
-					price = 0
-					order_temp['status'] = {}
-					order_temp['status']['time'] = datetime.now()
-					order_temp['status']['status'] = "placed"
-					order_temp['order']=list()
-					for item in order['items']:
-						temp={}
-						temp['name'] = item['name']
-						temp['qty'] = item['qty']
-						temp['barcode'] = item['barcode']
-						temp['image'] = item['image']
-						temp['price'] = item['price']
-						(order_temp['order']).append(temp)
-						price += int(temp['qty']) * int(temp['price'])
-					order_temp['order_total'] = price
-					order_data.append(order_temp)
-					i+=1
+			search_term = datetime.today().strftime("%Y%m%d")
+			collection = db.orders.find_one({"order_id":re.compile(search_term, re.IGNORECASE)})
+			try:
+				order_id = collection['order_id'];
+				order_id = order_id.replace(search_term,"")
+				
+			except:
+				order_id = 0
+			order_id = datetime.today().strftime("%Y%m%d") + (str(int(order_id) +1)).zfill(6)
+			i=0;
+			order_data = list()
+			for order in data['order']:
+				order_temp = {}
+				order_temp['order_id'] =order_id
+				order_temp['created_at']=(datetime.now() )
+				order_temp['suborder_id'] = order_id	+ (str(i +1)).zfill(2)
+				order_temp['user_id'] =data['user_id']
+				order_temp['name'] = data['name']
+				order_temp['email'] = data['email']
+				order_temp['address'] = data['address'] 
+				order_temp['phone'] = data['phone']
+				order_temp['retailer_id'] = order['retailer_id']
+				price = 0
+				order_temp['status'] = {}
+				order_temp['status']['time'] = datetime.now()
+				order_temp['status']['status'] = "placed"
+				order_temp['order']=list()
+				for item in order['items']:
+					temp={}
+					temp['name'] = item['name']
+					temp['qty'] = item['qty']
+					temp['barcode'] = item['barcode']
+					temp['image'] = item['image']
+					temp['price'] = item['price']
+					(order_temp['order']).append(temp)
+					price += int(temp['qty']) * int(temp['price'])
+				order_temp['order_total'] = price
+				order_data.append(order_temp)
+				i+=1
 			for order in order_data:
 				db.orders.insert(order)
 			return basic_success(order_data)
@@ -64,13 +83,6 @@ def order(request):
 			return basic_error("Details not found")
 	except Exception as e:
 		return basic_failure("Something went wrong!"+str(e))
-
-
-
-
-
-
-				
 
 @csrf_exempt
 def offers(request):
@@ -161,8 +173,8 @@ def retailer(request):
 		area=request.GET['area']
 	except:
 		return basic_error("Invalid Parameters")
-	
 	data=db.retailer
 	query = {"areas.locality": location, "areas.sub-locality":area}
 	result = data.find(query ,{"_id":False })
 	return basic_success(result);
+
