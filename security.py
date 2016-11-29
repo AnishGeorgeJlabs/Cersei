@@ -136,7 +136,7 @@ def m_auth(handler):
 	@csrf_exempt
 	def authorized_access(request):
 		if request.method == "GET":
-			opts = data.copy()
+			opts = request.GET.copy()
 		else:
 			opts = get_json(request)
 
@@ -166,7 +166,7 @@ def auth(handler):
 	@csrf_exempt
 	def authorized_access(request):
 		if request.method == "GET":
-			opts = data.copy()
+			opts = request.GET.copy()
 		else:
 			opts = get_json(request)
 

@@ -12,7 +12,25 @@ failure = dumps({"success":0})
 @csrf_exempt
 def list_location(request):
 	try:
-		results = db.retailer.find({} , {"areas.locality":1 ,"areas.sub-locality":1  , "_id":0 })
+		results = db.retailer.aggregate([
+			{
+				'$project': {
+					"_id":'$areas'
+				}
+			},
+			{
+				'$unwind': '$_id'
+			},
+			{
+				'$group': {
+					"_id" : '$_id.locality',
+					"data":{
+						'$addToSet':'$_id.sub-locality'
+					}
+				}
+			}
+		]);
+		return basic_success(results);
 		if results:
 			location = dict()
 			for result in results:
