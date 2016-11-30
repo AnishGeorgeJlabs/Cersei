@@ -24,9 +24,9 @@ def item_list(opts, vendor_id, method):
 		return basic_error("Store id is not available");
 	
 	
-def order_list(opts, vendor_id, method):
-	if method != "GET":
-		return basic_failure("GET method only")
+def order_list(opts, retailer_id, method):
+	if method != "POST":
+		return basic_failure("POST method only")
 
     # Get the status required
 	status = opts.get("status")
@@ -46,81 +46,78 @@ def order_list(opts, vendor_id, method):
 		if type_array:
 			data = list(db.orders.aggregate([
 				{"$match": {
-					"vendor_id": vendor_id,
+					"retailer_id": retailer_id,
 					"status.0.status": {'$in':type_array} ,
 					
 				}},
-				{"$sort": {"timestamp": -1}},
+				{"$sort": {"created_at": -1}},
 				{"$project": {
 					"_id": 0,
 					"order_id": 1,
+					"suborder_id": 1,
 					"status": "$status.status",
-					"pts":1,
 					"address": 1,
-					"timestamp": 1,
-					"order.qty": 1,
-					"payment_mode":1,
-					"order.price": 1
+					"created_at": 1,
+					"order": 1,
+					"payment_mode":1
+					
 				}}
 			]))
 	else:
 		if status:
 			data = list(db.orders.aggregate([
 				{"$match": {
-					"vendor_id": vendor_id,
+					"retailer_id": retailer_id,
 					"status.0.status": status
 					
 				}},
-				{"$sort": {"timestamp": -1}},
+				{"$sort": {"created_at": -1}},
 				{"$project": {
 					"_id": 0,
 					"order_id": 1,
+					"suborder_id": 1,
 					"status": "$status.status",
-					"pts":1,
 					"address": 1,
-					"timestamp": 1,
-					"order.qty": 1,
-					"payment_mode":1,
-					"order.price": 1
+					"created_at": 1,
+					"order": 1,
+					"payment_mode":1
 				}}
 			]))
 		elif payment:
 			data = list(db.orders.aggregate([
 				{"$match": {
-					"vendor_id": vendor_id, 
+					"retailer_id": retailer_id, 
 					"payment_mode":payment
 					
 				}},
-				{"$sort": {"timestamp": -1}},
+				{"$sort": {"created_at": -1}},
 				{"$project": {
 					"_id": 0,
 					"order_id": 1,
+					"suborder_id": 1,
 					"status": "$status.status",
 					"address": 1,
-					"timestamp": 1,
-					"pts":1,
-					"order.qty": 1,
-					"payment_mode":1,
-					"order.price": 1
+					"created_at": 1,
+					"order": 1,
+					"payment_mode":1
 				}}
 			]))
 		else:
 			data = list(db.orders.aggregate([
 				{"$match": {
-					"vendor_id": vendor_id
+					"retailer_id": retailer_id
 					
 				}},
-				{"$sort": {"timestamp": -1}},
+				{"$sort": {"created_at": -1}},
 				{"$project": {
 					"_id": 0,
 					"order_id": 1,
+					"suborder_id": 1,
 					"status": "$status.status",
 					"address": 1,
-					"timestamp": 1,
-					"pts":1,
-					"order.qty": 1,
-					"payment_mode":1,
-					"order.price": 1
+					"created_at": 1,
+					"order": 1,
+					"payment_mode":1
 				}}
 			]))
     # Transform the data to get the price and stuff, todo: debatable

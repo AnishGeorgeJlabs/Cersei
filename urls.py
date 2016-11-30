@@ -37,13 +37,22 @@ urlpatterns = [
 	url(r'^show_category$', security.m_auth(retailer.show_category)),
 
 	# ------------ Vendor URLs -------------------------
-    url(r'^vendor/order/list$', security.auth(order.order_list)),
     url(r'^vendor/order/details$', mock.details),
     url(r'^vendor/order/update', security.auth(order.update_order)),
     url(r'^vendor/order/scan$', security.auth(order.inner_scan)),
 	url(r'^vendor/list_item$', security.auth(order.item_list)),
     url(r'^vendor/order/scan/new$', security.auth(order.new_scan)),
     url(r'^vendor/account', security.auth(account.vendor_account)),
+
+
+# ------------ Retailer URLs -------------------------
+    url(r'^retailer/order/list$', security.rauth(order.order_list)),
+    url(r'^retailer/order/details$', mock.details),
+    url(r'^retailer/order/update', security.auth(order.update_order)),
+    url(r'^retailer/order/scan$', security.auth(order.inner_scan)),
+    url(r'^retailer/list_item$', security.auth(order.item_list)),
+    url(r'^retailer/order/scan/new$', security.auth(order.new_scan)),
+    url(r'^retailer/account', security.auth(account.vendor_account)),
 
     # ------------ Consumer URLs -----------------------
     url(r'^consumer/location',  search_location.search_query),
@@ -82,6 +91,7 @@ urlpatterns = [
     
     # ------------ Auth URLs ---------------------------
     url(r'^auth/login$', security.login),
+    url(r'^auth/rlogin$', security.rlogin),
     url(r'^auth/mlogin$', security.m_login),
     url(r'^auth/fe/login$', security.fe_login),
 	url(r'^auth/change_pass$', security.change_password),

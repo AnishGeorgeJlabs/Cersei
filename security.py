@@ -38,6 +38,40 @@ def login(request):
 		return basic_failure("Unauthorized access")
 
 @csrf_exempt
+def rlogin(request):
+	"""
+	Retailer login procedure
+	:param request:
+	:return:
+	"""
+	try:
+		data = get_json(request)
+		api_key =''.join(random.choice(string.ascii_uppercase +string.ascii_lowercase+'!@#$%^&*()' + string.digits) for _ in range(32))
+		for key in ['username', 'password' , 'user_type']:
+			if key not in data:
+				return basic_error(key+" missing")
+		m=db.credentials.find_one({"username":data['username'] , "type":data['user_type']})
+		if db.credentials.count({"username":data['username']}) > 0:
+			if m['password'] == data['password']:
+				retailer = db.retailer.find_one({"retailer_id": m['retailer_id']} , {"_id":False })
+				result = db.credentials.update_one({"username":data['username'] , "type":m['type']} ,{'$set':{"api_key":api_key,"last_login":datetime.now() + timedelta(hours=5,minutes=30)}})
+
+				if result.modified_count:
+					retailer['api_key'] = api_key
+					return basic_success(retailer)
+				else:
+					return basic_error("Something went wrong. Please try later.")
+			else:
+				return basic_error("Invalid Username And Password.")
+		else:
+			return basic_error("Invalid Username And Password.") 
+	except Exception as e:
+		return basic_error(str(e)+"Something went wrong. Please try later.")
+
+
+
+
+@csrf_exempt
 def m_login(request):
 	"""
 	Universal login procedure
@@ -86,13 +120,13 @@ def fe_login(request):
 					fe_user['type']=m['type']
 					return basic_success(fe_user)
 				else:
-					return basic_error("Something went wrong. Please try later12.")
+					return basic_error("Something went wrong. Please try later.")
 			else:
 				return basic_error("Invalid Username And Password.")
 		else:
 			return basic_error("Invalid Username And Password.") 
 	except Exception as e:
-		return basic_error(str(e)+"Something went wrong. Please try later1.")
+		return basic_error(str(e)+"Something went wrong. Please try later.")
 
 @csrf_exempt
 def fake_login(request):    
@@ -186,6 +220,35 @@ def auth(handler):
 			return basic_error("Handler error: "+str(e))
 
 	return authorized_access
+
+def rauth(handler):
+	""" Authorization layer for merchant application
+	:param handler: A function which will take 2 parameters (options, vendor_id) and return JSON response
+	:return: the handler function wrapped with the authorization middleware
+	"""
+	@csrf_exempt
+	def authorized_access(request):
+		if request.method == "GET":
+			opts = request.GET.copy()
+		else:
+			opts = get_json(request)
+
+		user_key = opts['user_type'] + '_id'
+		for key in ['api_key', user_key]:
+			if key not in opts:
+				return basic_error(key+" missing, unauthorized access")
+
+		api_key = opts.get('api_key')
+		retailer_id = opts.get(user_key)
+		try:
+			if db.credentials.count({"api_key": api_key , user_key: retailer_id}) > 0:
+				return handler(opts, retailer_id, request.method)
+			else:
+				return basic_failure("Unauthorized access")
+		except Exception as e:
+			return basic_error("Handler error: "+str(e))
+	return authorized_access
+
 
 @csrf_exempt
 def fe_auth(handler):
