@@ -133,6 +133,22 @@ def order_list(opts, retailer_id, method):
 	return basic_success(data)
 
 
+def order_details(opts, retailer_id, method):
+	try:
+		if method != "POST":
+			return basic_failure("POST method only")
+
+		order_id = opts.get("order_id")
+		suborder_id = opts.get("suborder_id")
+		order = db.orders.find({"order_id":order_id , "retailer_id":retailer_id} , {"_id":0})
+		if order:
+			return basic_success(order)
+		else:
+			return basic_failure("Order Not Found")
+	except:
+		return basic_failure("Order Not Found")
+
+
 def update_order(opts, vendor_id, method):
     if method != "POST":
         return basic_failure("POST method only")
