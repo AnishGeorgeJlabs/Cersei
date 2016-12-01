@@ -150,55 +150,26 @@ def order_details(opts, retailer_id, method):
 
 
 def update_order(opts, retailer_id, method):
-	if method != "POST":
-		return basic_failure("POST method only")
-	order_id = opts.get("order_id")
-	suborder_id = opts.get("suborder_id")
-	status = opts.get("status")
-	push_query = {
-		"status": {
-			"$each": [{"status": status, "time": datetime.now()}],
-			"$position": 0
+	try:
+		if method != "POST":
+			return basic_failure("POST method only")
+		order_id = opts.get("order_id")
+		suborder_id = opts.get("suborder_id")
+		status = opts.get("status")
+		push_query = {
+			"status": {
+				"$each": [{"status": status, "time": datetime.now()}],
+				"$position": 0
+			}
 		}
-	}
 
-	if status in ["cancelled","delayed","ready", "delivered","processed"]:
-		res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
-		return basic_success((res.modified_count > 0))
-	elif status == "accepted":
-		data = db.orders.find_one({"order_id": order_id, "retailer_id": retailer_id})
-		if not data:
-			return basic_failure("Ghost Order")
-		order_codes = opts['order_codes']   # This should be a single array
-		order = data['order']
-
-		# We will recheck the codes and all
-		# 1. Get data for each code
-		code_data = list(db.codes.find({
-			"code": {"$in": order_codes},
-			"used": False
-		}, {"_id": False}))
-
-		# 2. match items against codes
-		pts = 0
-		for item in order:
-			item['codes'] = []
-			icodes = filter(lambda cd: cd['barcode'] == item['barcode'], code_data)
-			for code in icodes:
-				if len(item['codes']) == item['qty']:
-					break
-				item['codes'].append(code['code'])
-				pts += code['pts']
-				db.codes.update_one({"code": code['code']}, {"$set": {"used": True}})
-		# 3. update order
-		db.orders.update_one({"_id": data['_id']}, {
-			"$set": {
-			"order": order,
-			"pts": pts
-			},
-			"$push": push_query
-		})
-		return basic_success(pts)
+		if status in ["cancelled","delayed","ready", "delivered","processed" ,"accepted"]:
+			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
+			return basic_success((res.modified_count > 0))
+		else:
+			return basic_failure("Wrong Status")
+	except:
+		return basic_failure("Something went")	
 
 
 def inner_scan(opts, retailer_id, method):
