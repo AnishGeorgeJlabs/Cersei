@@ -1,14 +1,14 @@
 from . import basic_success, basic_failure, basic_error, db
 from datetime import datetime
 
-def item_list(opts, vendor_id, method):
+def item_list(opts, retailer_id, method):
 	if method != "GET":
 		return basic_failure("GET method only")
-	store_id = opts['vendor_id']
+	store_id = opts['retailer_id']
 	res=list();
 	if store_id:
 		try:
-			data2= db.offers_alt.find({"vendor_id" :int(store_id)} , {"_id":False})
+			data2= db.offers_alt.find({"retailer_id" :int(store_id)} , {"_id":False})
 			for d in data2:
 				data={};
 				data['data']= db.items_alt.find_one({"item_id" :d['item_id']} , {"_id":False})
@@ -140,7 +140,7 @@ def order_details(opts, retailer_id, method):
 
 		order_id = opts.get("order_id")
 		suborder_id = opts.get("suborder_id")
-		order = db.orders.find({"order_id":order_id , "retailer_id":retailer_id} , {"_id":0})
+		order = db.orders.find_one({"order_id":order_id , "retailer_id":retailer_id} , {"_id":0})
 		if order:
 			return basic_success(order)
 		else:
@@ -149,60 +149,59 @@ def order_details(opts, retailer_id, method):
 		return basic_failure("Order Not Found")
 
 
-def update_order(opts, vendor_id, method):
-    if method != "POST":
-        return basic_failure("POST method only")
+def update_order(opts, retailer_id, method):
+	if method != "POST":
+		return basic_failure("POST method only")
+	order_id = opts.get("order_id")
+	suborder_id = opts.get("suborder_id")
+	status = opts.get("status")
+	push_query = {
+		"status": {
+			"$each": [{"status": status, "time": datetime.now()}],
+			"$position": 0
+		}
+	}
 
-    status = opts['status']
-    order_id = opts['order_id']
+	if status in ["cancelled","delayed","ready", "delivered","processed"]:
+		res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
+		return basic_success((res.modified_count > 0))
+	elif status == "accepted":
+		data = db.orders.find_one({"order_id": order_id, "retailer_id": retailer_id})
+		if not data:
+			return basic_failure("Ghost Order")
+		order_codes = opts['order_codes']   # This should be a single array
+		order = data['order']
 
-    push_query = {
-        "status": {
-            "$each": [{"status": status, "time": datetime.now()}],
-            "$position": 0
-        }
-    }
+		# We will recheck the codes and all
+		# 1. Get data for each code
+		code_data = list(db.codes.find({
+			"code": {"$in": order_codes},
+			"used": False
+		}, {"_id": False}))
 
-    if status in ["cancelled","delayed","ready", "delivered"]:
-        res=db.orders.update_one({"order_id": order_id, "vendor_id": vendor_id}, {"$push": push_query})
-        return basic_success((res.modified_count > 0))
-    elif status == "accepted":
-        data = db.orders.find_one({"order_id": order_id, "vendor_id": vendor_id})
-        if not data:
-            return basic_failure("Ghost Order")
-        order_codes = opts['order_codes']   # This should be a single array
-        order = data['order']
-
-        # We will recheck the codes and all
-        # 1. Get data for each code
-        code_data = list(db.codes.find({
-            "code": {"$in": order_codes},
-            "used": False
-        }, {"_id": False}))
-
-        # 2. match items against codes
-        pts = 0
-        for item in order:
-            item['codes'] = []
-            icodes = filter(lambda cd: cd['barcode'] == item['barcode'], code_data)
-            for code in icodes:
-                if len(item['codes']) == item['qty']:
-                    break
-                item['codes'].append(code['code'])
-                pts += code['pts']
-                db.codes.update_one({"code": code['code']}, {"$set": {"used": True}})
-        # 3. update order
-        db.orders.update_one({"_id": data['_id']}, {
-            "$set": {
-                "order": order,
-                "pts": pts
-            },
-            "$push": push_query
-        })
-        return basic_success(pts)
+		# 2. match items against codes
+		pts = 0
+		for item in order:
+			item['codes'] = []
+			icodes = filter(lambda cd: cd['barcode'] == item['barcode'], code_data)
+			for code in icodes:
+				if len(item['codes']) == item['qty']:
+					break
+				item['codes'].append(code['code'])
+				pts += code['pts']
+				db.codes.update_one({"code": code['code']}, {"$set": {"used": True}})
+		# 3. update order
+		db.orders.update_one({"_id": data['_id']}, {
+			"$set": {
+			"order": order,
+			"pts": pts
+			},
+			"$push": push_query
+		})
+		return basic_success(pts)
 
 
-def inner_scan(opts, vendor_id, method):
+def inner_scan(opts, retailer_id, method):
 	code = opts.get("code")
 	order_id = opts.get("order_id")
 	if not code or not order_id:
@@ -233,7 +232,7 @@ def inner_scan(opts, vendor_id, method):
 			"codematch":False
 		})
 
-def new_scan(opts, vendor_id, method):
+def new_scan(opts, retailer_id, method):
 	code = opts.get("code")
 	if not code:
 		return basic_error("No code given")
