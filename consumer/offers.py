@@ -75,9 +75,11 @@ def order(data, user_id, method):
 				order_temp['phone'] = data['phone']
 				order_temp['retailer_id'] = order['retailer_id']
 				price = 0
-				order_temp['status'] = {}
-				order_temp['status']['time'] = datetime.now()
-				order_temp['status']['status'] = "placed"
+				order_temp['status'] = list()
+				order_temp_status={}
+				order_temp_status['time'] = datetime.now()
+				order_temp_status['status'] = "placed"
+				(order_temp['status']).append(order_temp_status)
 				order_temp['order_total']=0
 				order_temp['order']=list()
 				for item in order['offers']:
@@ -109,7 +111,7 @@ def order(data, user_id, method):
 		else:
 			return basic_error("Details not found")
 	except Exception as e:
-		return basic_failure("Something went wrong!"+str(e))
+		return basic_failure("Something went wrong!")
 
 @csrf_exempt
 def offers(request):
