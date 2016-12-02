@@ -308,3 +308,33 @@ def fe_auth(handler):
 			return basic_error("Handler error: "+str(e))
 
 	return authorized_access
+
+@csrf_exempt
+def uauth(handler):
+	""" Authorization layer for merchant application
+	:param handler: A function which will take 2 parameters (options, vendor_id) and return JSON response
+	:return: the handler function wrapped with the authorization middleware
+	"""
+	@csrf_exempt
+	def authorized_access(request):
+		if request.method == "GET":
+			opts = request.GET.copy()
+		else:
+			opts = get_json(request)
+
+		user_key = opts['user_type'] + '_id'
+		for key in ['api_key', user_key]:
+			if key not in opts:
+				return basic_error(key+" missing, unauthorized access")
+
+		api_key = opts.get('api_key')
+		user_id = opts.get(user_key)
+		try:
+			if db.credentials.count({"api_key": api_key , user_key: user_id}) > 0:
+				return handler(opts, user_id, request.method)
+			else:
+				return basic_failure("Unauthorized access")
+		except Exception as e:
+			return basic_error("Handler error: "+str(e))
+	return authorized_access
+

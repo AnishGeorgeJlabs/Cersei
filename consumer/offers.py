@@ -47,9 +47,8 @@ def list_location(request):
 		return basic_failure("Something went wrong!"+str(e))
 
 @csrf_exempt
-def order(request):
+def order(data, user_id, method):
 	try:
-		data = get_json(request)
 		if data:
 			for key in ["user_id" , "name" , "address" , "email"  , "phone" , "order"]:
 				if key not in data:
@@ -80,17 +79,28 @@ def order(request):
 				order_temp['status'] = {}
 				order_temp['status']['time'] = datetime.now()
 				order_temp['status']['status'] = "placed"
+				order_temp['order_total']=0
 				order_temp['order']=list()
-				for item in order['items']:
+				for item in order['offers']:
 					temp={}
-					temp['name'] = item['name']
+					offer = db.offers.find_one({"offer_id":item['offer_id']} , {"_id":0 , "item_id":1 , "cashback":1 , } )
+					if not offer:
+						continue
+					item_detail = db.inventory.find_one({"item_id":offer['item_id']})
+					if not item_detail:
+						continue
+					temp['offer_id'] = item['offer_id']
+					temp['item_id'] = item_detail['item_id']
+					temp['cashback'] = offer['cashback']
+					temp['name'] = item_detail['product_name']
+					temp['pic'] = item_detail['img'][0]
+					temp['barcode'] = item_detail['barcode']
+					temp['price'] = int(item_detail['price'])
 					temp['qty'] = item['qty']
-					temp['barcode'] = item['barcode']
-					temp['image'] = item['image']
-					temp['price'] = item['price']
+					price = int(item['qty']) * int( item_detail	['price'])
+					temp['total']=price
 					(order_temp['order']).append(temp)
-					price += int(temp['qty']) * int(temp['price'])
-				order_temp['order_total'] = price
+					order_temp['order_total'] += price
 				order_data.append(order_temp)
 				i+=1
 			for order in order_data:

@@ -60,7 +60,7 @@ urlpatterns = [
 	url(r'^consumer/code' , scancode.scanCode),
 	url(r'^consumer/offers',  offers.offers),
     url(r'^consumer/list_offers',  offers.list_offers),
-    url(r'^consumer/order',  offers.order),
+    url(r'^consumer/order',  security.uauth(offers.order)),
     url(r'^consumer/retailer',  offers.retailer),
     url(r'^consumer/location',  offers.list_location),
     
