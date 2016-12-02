@@ -54,15 +54,14 @@ def order(data, user_id, method):
 				if key not in data:
 					return basic_error(key+" missing")
 			search_term = datetime.today().strftime("%Y%m%d")
-			collection = db.orders.find_one({"order_id":re.compile(search_term, re.IGNORECASE)})
+			collection = db.orders.find({"order_id":re.compile(search_term, re.IGNORECASE)}).sort("order_id" , -1)
 			try:
-				order_id = collection['order_id'];
+				order_id = collection[0]['order_id'];
 				order_id = order_id.replace(search_term,"")
-				
 			except:
 				order_id = 0
 			order_id = datetime.today().strftime("%Y%m%d") + (str(int(order_id) +1)).zfill(6)
-			i=0;
+			i=0
 			order_data = list()
 			for order in data['order']:
 				order_temp = {}
@@ -206,3 +205,34 @@ def retailer(request):
 	result = data.find(query ,{"_id":False })
 	return basic_success(result);
 
+@csrf_exempt
+def order_list(data, user_id, method):
+	try:
+		data = db.orders.aggregate(
+			[
+				{
+					'$match': {
+						"user_id":user_id
+					}
+				},
+				{
+					'$group': {
+						"_id":'$order_id' ,
+						"order":{
+							'$push':{
+								"status":'$status.status',
+								"suborder_id":'$suborder_id',
+								"retailer_id":'$retailer_id',
+								"order":'$order'
+							}
+						}
+					}
+				}
+			]
+		);
+		if data:
+			return basic_success(data)
+		else:
+			return	basic_success([])
+	except:
+		return basic_failure("User Not found")
