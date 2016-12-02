@@ -90,6 +90,7 @@ urlpatterns = [
     
     # ------------ Auth URLs ---------------------------
     url(r'^auth/login$', security.login),
+    url(r'^auth/ulogin$', security.ulogin),
     url(r'^auth/rlogin$', security.rlogin),
     url(r'^auth/mlogin$', security.m_login),
     url(r'^auth/fe/login$', security.fe_login),
