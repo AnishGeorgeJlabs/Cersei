@@ -127,8 +127,8 @@ def order_list(opts, retailer_id, method):
 		record['price'] = 0
 		record['item_count'] = 0
 		for item in order:
-			record['price'] += item['price']
-			record['item_count'] += item['qty']
+			record['price'] += int(item['price'])
+			record['item_count'] += int(item['qty'])
 
 	return basic_success(data)
 
@@ -173,35 +173,28 @@ def update_order(opts, retailer_id, method):
 
 
 def inner_scan(opts, retailer_id, method):
-	code = opts.get("code")
-	order_id = opts.get("order_id")
-	if not code or not order_id:
-		return basic_error("Invalid parameters")
-	code_data = db.codes_alt.find_one({"code": code}, {"_id": False })
-	if not code_data:
-		return basic_failure("Code not found")
-	if code_data['used']:
-		return basic_failure("Already used")
-	qrcodes=db.orders.find_one({"order_id":order_id} , {"_id":False , "order":True})
-	barcodes=list()
-	for qrcode in qrcodes['order']:
-		barcodes.append(qrcode['barcode'])
-	offer = db.offers_alt.find_one({"offer_id":int(code_data['offer_id'])})
-	item = db.items_alt.find_one({"item_id": offer['item_id']}, {"_id": False, "name": 1, "barcode": 1,"price":1, "img":1 , "weight":1})
-	if item['barcode'] in barcodes:
-		return basic_success({
-			"code": code,
-			"pts": offer['points'],
-			"item": item,
-			"codematch":True
-		})
-	else:
-		return basic_success({
-			"code": code,
-			"pts": offer['points'],
-			"item": item,
-			"codematch":False
-		})
+	try:
+		code = opts.get("code")
+		order_id = opts.get("order_id")
+		offer_id = opts.get	("offer_id")	
+		if not code or not order_id or not offer_id:
+			return basic_error("Invalid parameters")
+		code_data = db.qrcodes.find_one({"qrcodes": code , 'offer_id':offer_id	, "status": "live" , "retailer_id": retailer_id	 }, {"_id": False })
+		if not code_data:
+			return basic_failure("Code not found")
+		if code_data['used']:
+			return basic_failure("Already used")
+		qrcodes=db.orders.find_one({"order_id":order_id , "retailer_id": retailer_id} , {"_id":False , "order":True})
+		for qrcode in qrcodes['order']:
+			if code_data['item_id'] == qrcode['item_id']:
+				return basic_success({
+						"code": code,
+						"item": qrcode,
+						"codematch":True
+				})
+		return	basic_failure("This qrcode is not valid for this order")
+	except Exception as e:
+		return basic_error(str(e)+"Something Went wrong!")	
 
 def new_scan(opts, retailer_id, method):
 	code = opts.get("code")

@@ -48,7 +48,7 @@ urlpatterns = [
     url(r'^retailer/order/list$', security.rauth(order.order_list)),
     url(r'^retailer/order/details$',security.rauth(order.order_details)),
     url(r'^retailer/order/update', security.rauth(order.update_order)),
-    url(r'^retailer/order/scan$', security.auth(order.inner_scan)),
+    url(r'^retailer/order/scan$', security.rauth(order.inner_scan)),
     url(r'^retailer/list_item$', security.auth(order.item_list)),
     url(r'^retailer/order/scan/new$', security.auth(order.new_scan)),
     url(r'^retailer/account', security.auth(account.vendor_account)),
