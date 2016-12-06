@@ -6,6 +6,8 @@ import re
 import sys , os
 from . import db,jsonResponse,basic_success,basic_failure,basic_error , get_json
 import json
+import random
+import string
 from datetime import datetime
 
 failure = dumps({"success":0})
@@ -238,3 +240,56 @@ def order_list(data, user_id, method):
 			return	basic_success([])
 	except:
 		return basic_failure("User Not found")
+
+@csrf_exempt
+def add_user(request):
+	# ------- Add new User ----------
+	try:
+		opts = get_json(request)
+		for key in ['name' , 'mobile_no' , "email" ,'address']:
+			if key not in opts:
+				return basic_error(key+" missing")
+		# Get User ID to add
+		search_term = 'TC'+ datetime.today().strftime("%Y%m%d")
+		mobile_no = opts['mobile_no']
+		if not mobile_no.strip().isdigit() or len(mobile_no.strip()) != 10:
+			return basic_success("Not a valid Number")
+		collection = db.user.find_one({'$or':[ { "mobile_no":mobile_no.strip() } , {"email":opts['email']}]})
+		if collection:
+			return basic_failure("User Email ID or Mobile No. is already registered");
+		try:
+			collection = db.user.find(sort=[("user_id", -1)])
+			r  = (collection[0]['user_id']).find(search_term)
+			if r is 0:
+				user_id = collection[0]['user_id'];
+				user_id = user_id.replace(search_term,"")
+			else:
+				user_id='0';
+		except:
+			user_id = "0";
+		referral_code_true = False
+		if opts.get("referral_code"):
+			data1 = db.user.find_one({"referral_code": opts["referral_code"]})
+			if data1:
+				referral_code_true = True
+				referred_by = data1['user_id']
+		referral_code = (opts['name'])[:3] + ''.join(random.choice(string.ascii_lowercase+string.digits) for i in range(5))
+		user_id = search_term + (str(int(user_id) +1)).zfill(4)
+		data = {}
+		data['user_id']=user_id
+		data['name']=opts['name']
+		data['email']=opts['email']
+		data['address']=opts['address']
+		data['referral_code']=referral_code
+		if referral_code_true:
+			data['referred_by']=referred_by
+		data['mobile_no']=mobile_no.strip()
+		data['created_at']=(datetime.now())
+		data['updated_at']=(datetime.now())
+		db.user.insert(data);
+		return basic_success(data)
+	except Exception as e:
+		return basic_error(str(e)+"Something went wrong!")
+
+
+
