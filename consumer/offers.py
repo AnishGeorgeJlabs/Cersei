@@ -260,6 +260,52 @@ def order_list(data, user_id, method):
 		return basic_failure(str(e)+"User Not found")
 
 @csrf_exempt
+def order_list(data, user_id, method):
+	try:
+		data = db.orders.aggregate(
+			[
+				{
+					'$match': {
+						"user_id":user_id
+					}
+				},
+				{
+
+					'$sort' :{
+						"created_at":1
+					}	
+
+				},
+				{
+					'$project': {
+						"_id":0 ,
+						"created_at": { '$dateToString': { 'format': "%Y-%m-%d %H:%M:%S", 'date': "$created_at" } }, 
+						"order":1 , 
+						"name": 1 , 
+						"email":1 , 
+						"retailer_id":1 , 
+						"address":1 , 
+						"phone":1 , 
+						"user_id":1 , 
+						"total_quantity":1 , 
+						"order_id":1 , 
+						"suborder_id":1 , 
+						"order_total":1 ,
+						"status":1
+
+					}
+				}
+
+			]
+		);
+		if data:
+			return basic_success(data)
+		else:
+			return	basic_success([])
+	except Exception as e:
+		return basic_failure(str(e)+"User Not found")
+
+@csrf_exempt
 def add_user(request):
 	# ------- Add new User ----------
 	try:
