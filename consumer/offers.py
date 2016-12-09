@@ -222,26 +222,42 @@ def order_list(data, user_id, method):
 					}
 				},
 				{
+
+					'$sort' :{
+						"created_at":1
+					}	
+
+				},
+				{
 					'$group': {
 						"_id":'$order_id' ,
+						"created_at":{'$max':'$created_at' }, 
 						"order":{
 							'$push':{
 								"status":'$status.status',
 								"suborder_id":'$suborder_id',
 								"retailer_id":'$retailer_id',
-								"order":'$order'
+								"order":'$order' , 
 							}
 						}
 					}
+				},
+				{
+					'$project': {
+						"_id":1 ,
+						"created_at": { '$dateToString': { 'format': "%Y-%m-%d %H:%M:%S", 'date': "$created_at" } }, 
+						"order":1
+					}
 				}
+
 			]
 		);
 		if data:
 			return basic_success(data)
 		else:
 			return	basic_success([])
-	except:
-		return basic_failure("User Not found")
+	except Exception as e:
+		return basic_failure(str(e)+"User Not found")
 
 @csrf_exempt
 def add_user(request):
