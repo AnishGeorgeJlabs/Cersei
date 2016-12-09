@@ -235,8 +235,9 @@ def add_item(opts, manager_id, method):
 		
 		#Add Category 
 		
-		if "category_id" not in opts:
-			category_name = opts.get("category_name")
+		category_name = opts.get("category_name")
+		collection = db.categories.find_one({"category_name":category_name})
+		if not collection:
 			collection = db.categories.find_one(sort=[("category_id", -1)])
 			try:
 				cat_id = collection['category_id'];
@@ -244,20 +245,19 @@ def add_item(opts, manager_id, method):
 			except:
 				cat_id = "0";
 			cat={}
-			category_id = "CAT" + (str(int(cat_id) +1)).zfill(4)
 			cat['category_id'] = "CAT" + (str(int(cat_id) +1)).zfill(4)
 			cat['category_name'] = category_name
 			cat['created_at']=(datetime.now())
 			cat['add_by']=manager_id
 			db.categories.insert(cat)
+			category_id = "CAT" + (str(int(cat_id) +1)).zfill(4)
 		else:
-			category_id = opts['category_id']
-			
-			
+			category_id = collection['category_id']
 		#add Company
 		
-		if "company_id" not in opts:
-			company_name = opts.get("company_name")
+		company_name = opts.get("company_name")
+		collection = db.companies.find_one({"company_name":company_name})
+		if not collection:
 			collection = db.companies.find_one(sort=[("company_id", -1)])
 			try:
 				com_id = collection['company_id'];
@@ -272,9 +272,8 @@ def add_item(opts, manager_id, method):
 			com['add_by']=manager_id
 			db.companies.insert(com)
 		else:
-			company_id=opts['company_id']
-			
-		
+			company_id = collection['company_id']
+
 		#add Item 
 		data = {}
 		data['item_id']=item_id
