@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^show_retailer$', security.m_auth(retailer.show_retailer)),
     url(r'^show_item$', security.m_auth(retailer.show_item)),
 	url(r'^show_category$', security.m_auth(retailer.show_category)),
+    url(r'^show_company$', security.m_auth(retailer.show_company)),
 
 	# ------------ Vendor URLs -------------------------
     url(r'^vendor/order/update', security.auth(order.update_order)),

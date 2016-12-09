@@ -169,7 +169,7 @@ def update_order(opts, retailer_id, method):
 		else:
 			return basic_failure("Wrong Status")
 	except:
-		return basic_failure("Something went")	
+		return basic_failure("Something went Wrong")	
 
 
 def inner_scan(opts, retailer_id, method):
@@ -179,7 +179,7 @@ def inner_scan(opts, retailer_id, method):
 		offer_id = opts.get	("offer_id")	
 		if not code or not order_id or not offer_id:
 			return basic_error("Invalid parameters")
-		code_data = db.qrcodes.find_one({"qrcodes": code , 'offer_id':offer_id	, "status": "live" , "retailer_id": retailer_id	 }, {"_id": False })
+		code_data = db.qrcodes.find_one({"qrcodes": qc ,"retailer_id": retailer_id ,  "status": "live" , "used": False  }, {"_id": False })
 		if not code_data:
 			return basic_failure("Code not found")
 		if code_data['used']:
@@ -191,10 +191,10 @@ def inner_scan(opts, retailer_id, method):
 						"code": code,
 						"item": qrcode,
 						"codematch":True
-				})
+				}) 
 		return	basic_failure("This qrcode is not valid for this order")
 	except Exception as e:
-		return basic_error(str(e)+"Something Went wrong!")	
+		return basic_error("Something Went wrong!")	
 
 def new_scan(opts, retailer_id, method):
 	code = opts.get("code")

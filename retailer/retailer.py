@@ -16,6 +16,16 @@ def show_category(opts, manager_id, method):
 		return basic_error("Something went wrong!")
 
 @csrf_exempt
+def show_company(opts, manager_id, method):
+	# ------- Show All Retailers ----------
+	try:
+		if method != 'POST':
+			return basic_error("POST Method only");
+		return basic_success(db.companies.find({},{"_id":0 , "company_name":1 , "company_id":1}))
+	except:
+		return basic_error("Something went wrong!")
+
+@csrf_exempt
 def show_retailer(opts, manager_id, method):
 	# ------- Show All Retailers ----------
 	try:

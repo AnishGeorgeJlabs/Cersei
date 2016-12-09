@@ -83,6 +83,7 @@ def order(data, user_id, method):
 				order_temp_status['status'] = "placed"
 				(order_temp['status']).append(order_temp_status)
 				order_temp['order_total']=0
+				order_temp['total_quantity']=0
 				order_temp['order']=list()
 				for item in order['offers']:
 					temp={}
@@ -104,6 +105,7 @@ def order(data, user_id, method):
 					temp['total']=price
 					(order_temp['order']).append(temp)
 					order_temp['order_total'] += price
+					order_temp['total_quantity'] += int(item['qty'])
 				order_data.append(order_temp)
 				i+=1
 			for order in order_data:
