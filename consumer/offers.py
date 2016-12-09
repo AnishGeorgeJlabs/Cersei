@@ -260,7 +260,7 @@ def order_list(data, user_id, method):
 		return basic_failure(str(e)+"User Not found")
 
 @csrf_exempt
-def order_list(data, user_id, method):
+def orders_list(data, user_id, method):
 	try:
 		data = db.orders.aggregate(
 			[
