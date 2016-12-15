@@ -2,26 +2,19 @@ from . import basic_success, basic_failure, basic_error, db
 from datetime import datetime
 
 def item_list(opts, retailer_id, method):
-	if method != "GET":
-		return basic_failure("GET method only")
-	store_id = opts['retailer_id']
 	res=list();
-	if store_id:
-		try:
-			data2= db.offers_alt.find({"retailer_id" :int(store_id)} , {"_id":False})
-			for d in data2:
-				data={};
-				data['data']= db.items_alt.find_one({"item_id" :d['item_id']} , {"_id":False})
-				data['data']['qrcodes']=list();
-				temp=db.codes_alt.find({"offer_id":d['offer_id']  , "code":{'$exists':True}} , {"_id":False ,"code":True})
-				for t in temp:
-					(data['data']['qrcodes']).append(t['code'])
+	try:
+		data2= db.offers.find({"retailer_id" :retailer_id} , {"_id":False})
+		for d in data2:
+			data={};
+			data['data']= db.inventory.find_one({"item_id" :d['item_id']} , {"_id":False })
+			temp=db.qrcodes.find({"offer_id":d['offer_id']  ,"used": False , "status":"live"} , {"_id":False ,"qrcodes":True})
+			if temp:
+				data['data']['stock'] = temp.count()
 				res.append(data['data'])
-			return basic_success(res)
-		except:
-			return basic_error("Invalid Store ID");
-	else:
-		return basic_error("Store id is not available");
+		return basic_success(res)
+	except:
+		return basic_error("Invalid Store ID");
 	
 	
 def order_list(opts, retailer_id, method):
