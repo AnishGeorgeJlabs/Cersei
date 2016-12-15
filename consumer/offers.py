@@ -310,7 +310,7 @@ def add_user(request):
 	# ------- Add new User ----------
 	try:
 		opts = get_json(request)
-		for key in ['name' , 'mobile_no' , "email" ,'address']:
+		for key in ['name' , 'mobile_no' , "email" ,'address', 'password']:
 			if key not in opts:
 				return basic_error(key+" missing")
 		# Get User ID to add
@@ -351,6 +351,23 @@ def add_user(request):
 		data['created_at']=(datetime.now())
 		data['updated_at']=(datetime.now())
 		db.user.insert(data);
+		api_key =''.join(random.choice(string.ascii_uppercase +string.ascii_lowercase+'!@#$%^&*()' + string.digits) for _ in range(32))
+		creds = {}
+		creds['api_key']= api_key
+		data['api_key']= api_key
+		creds['last_login']= datetime.now()
+		creds['username']= data['mobile_no']
+		creds['password']= opts['password']
+		creds['user_id']= user_id
+		creds['type']= 'user'
+		db.credentials.insert(creds)
+		if referral_code_true:
+			refer = {}
+			refer['user_id'] = user_id
+			refer['used'] = False
+			refer['referred_by'] = referred_by
+			refer['created_at'] = datetime.now()
+			db.referral_offers.insert(refer)
 		return basic_success(data)
 	except Exception as e:
 		return basic_error(str(e)+"Something went wrong!")
