@@ -193,11 +193,13 @@ def list_offers(request):
 			}
 		}
 	]))
+	offers_data_orig =list()
 	for r1 in offers_data:
 		for code in codes:
 			if code['offer_id']  == r1['offer_id']:
 				r1['remaining_qrcodes']	 = code['count']
-	return basic_success(offers_data);
+				offers_data_orig.append(r1)
+	return basic_success(offers_data_orig);
 
 @csrf_exempt
 def retailer(request):
