@@ -412,3 +412,11 @@ def show_offers(data, user_id, method):
 		return basic_success({"current_offers":live , "used_offers":old})
 	except Exception as e:
 		return basic_error(str(e)+"NO record found")
+
+
+@csrf_exempt
+def user_info(data, user_id, method):
+	try:
+		return basic_success(db.user.find_one({"user_id":user_id} , {"_id":0}))
+	except Exception as e:
+		return basic_error("NO record found")

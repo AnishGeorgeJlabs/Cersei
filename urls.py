@@ -52,7 +52,7 @@ urlpatterns = [
     url(r'^retailer/order/scan$', security.rauth(order.inner_scan)),
     url(r'^retailer/list_item$', security.rauth(order.item_list)),
     url(r'^retailer/order/scan/new$', security.auth(order.new_scan)),
-    url(r'^retailer/account', security.auth(account.vendor_account)),
+    url(r'^retailer/account', security.rauth(order.retailer_account)),
 
     # ------------ Consumer URLs -----------------------
     url(r'^consumer/location',  search_location.search_query),
@@ -67,6 +67,7 @@ urlpatterns = [
     url(r'^consumer/register',  offers.add_user),
     url(r'^consumer/retailer',  offers.retailer),
     url(r'^consumer/location',  offers.list_location),
+    url(r'^consumer/account',  security.uauth(offers.user_info)),
     
 	#-------------FE APP URLs ---------------------------
 	url(r'^fe/list_item', security.fe_auth(feapp_offers.list_item)),

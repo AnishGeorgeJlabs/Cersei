@@ -205,3 +205,32 @@ def new_scan(opts, retailer_id, method):
 			"item": item
 			
 		})
+
+
+def retailer_account(opts, retailer_id, method):
+    # ------- retailer details ----------
+    retailer = db.retailer.find_one({"retailer_id": retailer_id}, {"_id": False, "retailer_id": False})
+    if not retailer:
+        return basic_failure("Invalid retailer")
+
+    # ------- account stats -----------
+    retailer1= {}
+    retailer1.update({
+        "pending": 0,
+        "cancelled": 0,
+        "complete": 0,
+        "total_points": 0
+    })
+    for item in db.orders.find({"retailer_id": retailer_id}, {"_id": False, "status": True}):
+        status = item['status'][0]['status']
+
+        if status == "placed":
+            retailer1['pending'] += 1
+        elif status == "accepted":
+            retailer1['complete'] += 1
+        else:
+            retailer1['cancelled'] += 1
+
+        retailer1['total_points'] =100
+
+    return basic_success(retailer1)
