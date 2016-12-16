@@ -26,27 +26,24 @@ def list_location(request):
 			{
 				'$group': {
 					"_id" : '$_id.locality',
-					"data":{
+					"locations":{
 						'$addToSet':'$_id.sub-locality'
 					}
 				}
+			} , 
+			{
+				'$project':{
+					"area":'$_id' , 
+					"locations":1 ,
+					"_id" : 0
+				}
 			}
+
 		]);
-		return basic_success(results);
-		if results:
-			location = dict()
-			for result in results:
-				for area in result['areas']:
-					try:
-						(location[(area['locality']).lower()]).add((area['sub-locality']).lower())
-					except:
-						location[(area['locality']).lower()]=set()
-						(location[(area['locality']).lower()]).add((area['sub-locality']).lower())
-			return basic_success(location)
-		else:
-			return basic_error("Details not found")
+		success = dumps({"success": 1, "data": results})
+		return HttpResponse(success, content_type="application/json")
 	except Exception as e:
-		return basic_failure("Something went wrong!"+str(e))
+		return basic_failure("Something went wrong!")
 
 @csrf_exempt
 def order(data, user_id, method):
@@ -169,7 +166,7 @@ def list_offers(request):
 		return basic_error("Invalid Parameters")
 	
 	data=db.retailer
-	query = {"areas.locality": location, "areas.sub-locality":area }
+	query = {"areas.locality": re.compile(location, re.IGNORECASE), "areas.sub-locality":re.compile(area, re.IGNORECASE) }
 	result = data.find(query ,{"_id":False , "retailer_id":True })
 	data =db.offers
 	retailers = list()
