@@ -87,7 +87,6 @@ def ulogin(request):
 		if db.credentials.count({"username":data['username']}) > 0:
 			if m['password'] == data['password']:
 				user = db.user.find_one({"user_id": m['user_id']} , {"_id":False })
-				return basic_success(user)
 				result = db.credentials.update_one({"username":data['username'] , "type":m['type']} ,{'$set':{"api_key":api_key,"last_login":datetime.now() + timedelta(hours=5,minutes=30)}})
 				if result.modified_count:
 					user['api_key'] = api_key
