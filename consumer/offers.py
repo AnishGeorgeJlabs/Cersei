@@ -64,12 +64,20 @@ def order(data, user_id, method):
 				order_id = 0
 			order_id = datetime.today().strftime("%Y%m%d") + (str(int(order_id) +1)).zfill(6)
 			i=0
+			data['order_id']= order_id
 			order_data = list()
+			total_cart = 0;
+			total_cb = 0;
+			data['cashback']= {}
+			data['cashback']['total_cb']  = total_cb
+			data['cashback']['type'] = list()
 			for order in data['order']:
+				total_cb1=0
 				order_temp = {}
 				order_temp['order_id'] =order_id
 				order_temp['created_at']=(datetime.now() )
 				order_temp['suborder_id'] = order_id	+ (str(i +1)).zfill(2)
+				order['suborder_id'] = order_id	+ (str(i +1)).zfill(2)
 				order_temp['user_id'] =data['user_id']
 				order_temp['name'] = data['name']
 				order_temp['email'] = data['email']
@@ -83,6 +91,7 @@ def order(data, user_id, method):
 				order_temp_status['status'] = "placed"
 				(order_temp['status']).append(order_temp_status)
 				order_temp['order_total']=0
+				order['total'] = 0
 				order_temp['total_quantity']=0
 				order_temp['order']=list()
 				for item in order['offers']:
@@ -96,26 +105,46 @@ def order(data, user_id, method):
 					temp['offer_id'] = item['offer_id']
 					temp['item_id'] = item_detail['item_id']
 					temp['cashback'] = offer['cashback']
+
 					temp['name'] = item_detail['product_name']
 					temp['pic'] = item_detail['img'][0]
 					temp['barcode'] = item_detail['barcode']
 					temp['price'] = int(item_detail['price'])
 					temp['qty'] = item['qty']
 					price = int(item['qty']) * int( item_detail	['price'])
+					total_cb1 += int(price * (float(temp['cashback'])/100))
 					temp['total']=price
+					item['info'] = temp
 					(order_temp['order']).append(temp)
 					order_temp['order_total'] += price
+					order['total'] += price
 					order_temp['total_quantity'] += int(item['qty'])
+					total_cart += price
+				total_cb += total_cb1
+				data['cashback']['total_cb'] = total_cb
+				(data['cashback']['type']).append({"suborder_id":order_temp['suborder_id'] , "cashback":total_cb1})
 				order_data.append(order_temp)
 				i+=1
 			for order in order_data:
 				db.orders.insert(order)
-			return basic_success(order_data)
+			ref = db.referral_offers.find_one({"user_id":user_id , "used":False})
+			if ref:
+				if total_cart >= 200:
+					cb = total_cart * .1
+					if cb > 50:
+						cb = 50
+					data['cashback']['total_cb'] += cb
+					(data['cashback']['type']).append({"suborder_id":"referral" , "cashback":cb})
+					ref['used']=True
+					ref['status']='processed'
+					ref['order_id'] = order_id
+					db.referral_offers.save(ref)
+			return basic_success(data)
 
 		else:
 			return basic_error("Details not found")
 	except Exception as e:
-		return basic_failure("Something went wrong!")
+		return basic_failure(str(e)+"Something went wrong!")
 
 @csrf_exempt
 def offers(request):
@@ -375,4 +404,11 @@ def add_user(request):
 		return basic_error(str(e)+"Something went wrong!")
 
 
-
+@csrf_exempt
+def show_offers(data, user_id, method):
+	try:
+		live = db.referral_offers.find({"user_id":user_id , "used":False} , {"_id":0})
+		old = db.referral_offers.find({"user_id":user_id , "used":True} , {"_id":0})
+		return basic_success({"current_offers":live , "used_offers":old})
+	except Exception as e:
+		return basic_error(str(e)+"NO record found")
