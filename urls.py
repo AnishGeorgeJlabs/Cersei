@@ -65,6 +65,7 @@ urlpatterns = [
     url(r'^consumer/order/list',  security.uauth(offers.orders_list)),
     url(r'^consumer/order',  security.uauth(offers.order)),
     url(r'^consumer/register',  offers.add_user),
+    url(r'^consumer/phone',  offers.phone),
     url(r'^consumer/retailer',  offers.retailer),
     url(r'^consumer/location',  offers.list_location),
     url(r'^consumer/account',  security.uauth(offers.user_info)),

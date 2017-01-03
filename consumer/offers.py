@@ -8,7 +8,7 @@ from . import db,jsonResponse,basic_success,basic_failure,basic_error , get_json
 import json
 import random
 import string
-from datetime import datetime
+from datetime import date,datetime , timedelta
 
 failure = dumps({"success":0})
 @csrf_exempt
@@ -137,7 +137,6 @@ def order(data, user_id, method):
 					ref['order_id'] = order_id
 					db.referral_offers.save(ref)
 			return basic_success(data)
-
 		else:
 			return basic_error("Details not found")
 	except Exception as e:
@@ -338,7 +337,7 @@ def add_user(request):
 	# ------- Add new User ----------
 	try:
 		opts = get_json(request)
-		for key in ['name' , 'mobile_no' , "email" ,'address', 'password']:
+		for key in ['name' , 'mobile_no' ]:
 			if key not in opts:
 				return basic_error(key+" missing")
 		# Get User ID to add
@@ -346,7 +345,7 @@ def add_user(request):
 		mobile_no = opts['mobile_no']
 		if not mobile_no.strip().isdigit() or len(mobile_no.strip()) != 10:
 			return basic_success("Not a valid Number")
-		collection = db.user.find_one({'$or':[ { "mobile_no":mobile_no.strip() } , {"email":opts['email']}]})
+		collection = db.user.find_one({'$or':[ { "mobile_no":mobile_no.strip() } , {"email":opts.get('email')}]})
 		if collection:
 			return basic_failure("User Email ID or Mobile No. is already registered");
 		try:
@@ -370,8 +369,8 @@ def add_user(request):
 		data = {}
 		data['user_id']=user_id
 		data['name']=opts['name']
-		data['email']=opts['email']
-		data['address']=opts['address']
+		data['email']=opts.get('email')
+		data['address']=opts.get('address')
 		data['referral_code']=referral_code
 		if referral_code_true:
 			data['referred_by']=referred_by
@@ -385,7 +384,7 @@ def add_user(request):
 		data['api_key']= api_key
 		creds['last_login']= datetime.now()
 		creds['username']= data['mobile_no']
-		creds['password']= opts['password']
+		creds['password']= '5555'
 		creds['user_id']= user_id
 		creds['type']= 'user'
 		db.credentials.insert(creds)
@@ -417,3 +416,30 @@ def user_info(data, user_id, method):
 		return basic_success(db.user.find_one({"user_id":user_id} , {"_id":0}))
 	except Exception as e:
 		return basic_error("NO record found")
+
+@csrf_exempt
+def phone(request):
+	try:
+		opts = get_json(request)
+		for key in ['otp' , 'mobile_no' ]:
+			if key not in opts:
+				return basic_error(key+" missing")
+		api_key =''.join(random.choice(string.ascii_uppercase +string.ascii_lowercase+'!@#$%^&*()' + string.digits) for _ in range(32))
+		m=db.credentials.find_one({"username":opts['mobile_no'] , "type":"user" })
+		if db.credentials.count({"username":opts['mobile_no']}) > 0 :
+			if opts['otp'] != '5555':
+				return basic_error("Something went wrong. Please try later.")
+			user = db.user.find_one({"user_id": m['user_id']} , {"_id":False })
+			result = db.credentials.update_one({"username":opts['mobile_no'] , "type":m['type']} ,{'$set':{"api_key":api_key,"last_login":datetime.now() + timedelta(hours=5,minutes=30)}})
+			if result.modified_count:
+				user['api_key'] = api_key
+				user['new_user']=False
+				return basic_success(user)
+			else:
+				return basic_error("Something went wrong. Please try later.")
+		else:
+			user = {}
+			user['new_user']=True
+			return basic_success(user)
+	except Exception as e:
+		return basic_error("Error Occured")
