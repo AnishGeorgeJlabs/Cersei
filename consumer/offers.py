@@ -345,7 +345,7 @@ def add_user(request):
 		mobile_no = opts['mobile_no']
 		if not mobile_no.strip().isdigit() or len(mobile_no.strip()) != 10:
 			return basic_success("Not a valid Number")
-		collection = db.user.find_one({'$or':[ { "mobile_no":mobile_no.strip() } , {"email":opts.get('email')}]})
+		collection = db.user.find_one({ "mobile_no":mobile_no.strip() })
 		if collection:
 			return basic_failure("User Email ID or Mobile No. is already registered");
 		try:
