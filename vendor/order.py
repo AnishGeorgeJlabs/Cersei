@@ -162,7 +162,7 @@ def update_order(opts, retailer_id, method):
 		}
 		if status in ["delayed","ready" ,"accepted" , "processed"]:
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
-		if status is "processed1":
+		elif status is "processed1":
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
 			qrcodes = opts.get("qrcodes")
 			if not qrcodes:
@@ -179,7 +179,7 @@ def update_order(opts, retailer_id, method):
 			update['suborder_id']=suborder_id
 			db.qrcodes.update({"qrcodes": {'$in':qccodes} ,"retailer_id": retailer_id ,  "status": "live" , "used": False  } , {'$set':update})
 			return basic_success((res.modified_count > 0))
-		if status in ["cancelled", "delivered"]:
+		elif status in ["cancelled", "delivered"]:
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
 			total = db.orders.find({"order_id":order_id}).count()
 			total_processed = db.orders.find({"order_id":order_id , "status.0.status":{'$in':["cancelled", "delivered"]}}).count()
