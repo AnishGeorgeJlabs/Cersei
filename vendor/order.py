@@ -162,7 +162,8 @@ def update_order(opts, retailer_id, method):
 		}
 		if status in ["delayed","ready" ,"accepted" , "processed"]:
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
-		elif status is "processed1":
+			return basic_success((res.modified_count > 0))
+		if status is "processed1":
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
 			qrcodes = opts.get("qrcodes")
 			if not qrcodes:
@@ -179,7 +180,7 @@ def update_order(opts, retailer_id, method):
 			update['suborder_id']=suborder_id
 			db.qrcodes.update({"qrcodes": {'$in':qccodes} ,"retailer_id": retailer_id ,  "status": "live" , "used": False  } , {'$set':update})
 			return basic_success((res.modified_count > 0))
-		elif status in ["cancelled", "delivered"]:
+		if status in ["cancelled", "delivered"]:
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
 			total = db.orders.find({"order_id":order_id}).count()
 			total_processed = db.orders.find({"order_id":order_id , "status.0.status":{'$in':["cancelled", "delivered"]}}).count()
@@ -230,10 +231,9 @@ def update_order(opts, retailer_id, method):
 					res1 = db.orders.find_one({'suborder_id':suborder_id})
 					db.user.find_one_and_update({"user_id":res1['user_id']} , {'$push':push_query , '$inc':{'total_cashback':int(re['total_cashback']) , 'account_balance':int(re['total_cashback'])} })
 				return basic_success((res.modified_count > 0))
-		else:
-			return basic_failure("Wrong Status")
+		return basic_failure("Wrong Status")
 	except Exception as e:
-		return basic_failure(str(e)+"Something went Wrong")	
+		return basic_failure("Something went Wrong")	
 
 
 def inner_scan(opts, retailer_id, method):
