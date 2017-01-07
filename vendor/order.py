@@ -160,8 +160,25 @@ def update_order(opts, retailer_id, method):
 				"$position": 0
 			}
 		}
-		if status in ["delayed","ready","processed" ,"accepted"]:
+		if status in ["delayed","ready" ,"accepted"]:
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
+		if status is "processed":
+			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
+			qrcodes = opts.get("qrcodes")
+			if not qrcodes:
+				return basic_failure("please add qrcodes to order")
+			current_order=db.orders.find_one({"order_id":order_id , "retailer_id": retailer_id} , {"_id":False  , "order":1})
+			if len(qrcodes) is not int(current_order['total_quantity']):
+				return basic_failure("No. of qrcodes must be equal to total quantity")
+			code_data = db.qrcodes.find({"qrcodes": {'$in':qccodes} ,"retailer_id": retailer_id ,  "status": "live" , "used": False  }, {"_id": False })
+			if len(qrcodes) is not code_data.count():
+				return basic_failure("Some of qrcodes are not valid");
+			update = {}
+			update['used']=True
+			update['used_at']=datetime.now()
+			update['suborder_id']=suborder_id
+			db.qrcodes.update({"qrcodes": {'$in':qccodes} ,"retailer_id": retailer_id ,  "status": "live" , "used": False  } , {'$set':update})
+			return basic_success((res.modified_count > 0))
 		if status in ["cancelled", "delivered"]:
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
 			total = db.orders.find({"order_id":order_id}).count()
@@ -194,9 +211,11 @@ def update_order(opts, retailer_id, method):
 								if total > 50:
 									total= 50
 								db.referral_offers.update_one({"order_id":order_id} , {'$set':{'status':'used'}})
+								if is_referral.get('referred_by'):
+									db.referral_offers.insert({ "user_id":is_referral['referred_by'] , "used":False , "created_at":datetime.now()})
 								push_query = {
-									"cashback_history": {
-										"$each": [{"cashback": total + int(re['total_cashback']), "order_id":order_id , "timestamp": datetime.now()}],
+									"cashback_history"+"."+datetime.now().strftime("%Y"): {
+										"$each": [ {"cashback": total +int(re['total_cashback']), "order_id":order_id , "timestamp":  datetime.now().strftime("%d,%b") , "year":datetime.now().strftime("%Y") }],
 										"$position": 0
 									}
 								}
@@ -209,7 +228,7 @@ def update_order(opts, retailer_id, method):
 									}
 								}
 					res1 = db.orders.find_one({'suborder_id':suborder_id})
-					db.user.update_one({"user_id":res1['user_id']} , {'$push':push_query ,'$set':{'account_balance':{'$add':['$account_balance' ,int(re['total_cashback']) ] },'total_cashback':{'$add':['$total_cashback', int(re['total_cashback'])] }}})
+					db.user.find_one_and_update({"user_id":res1['user_id']} , {'$push':push_query , '$inc':{'total_cashback':int(re['total_cashback']) , 'account_balance':int(re['total_cashback'])} })
 				return basic_success((res.modified_count > 0))
 		else:
 			return basic_failure("Wrong Status")
