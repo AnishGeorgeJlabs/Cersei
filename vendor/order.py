@@ -9,12 +9,17 @@ def item_list(opts, retailer_id, method):
 			data={};
 			data['data']= db.inventory.find_one({"item_id" :d['item_id']} , {"_id":False })
 			temp=db.qrcodes.find({"offer_id":d['offer_id']  ,"used": False , "status":"live"} , {"_id":False ,"qrcodes":True})
+
 			if temp:
 				data['data']['stock'] = temp.count()
+				qcode = list()
+				for q in temp:
+					qcode.append(q['qrcodes'])
+				data['data']['qrcodes'] = qcode
 				res.append(data['data'])
 		return basic_success(res)
-	except:
-		return basic_error("Invalid Store ID");
+	except Exception as e:
+		return basic_error(str(e)+"Invalid Store ID");
 	
 	
 def order_list(opts, retailer_id, method):
