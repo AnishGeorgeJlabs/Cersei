@@ -155,14 +155,61 @@ def update_order(opts, retailer_id, method):
 				"$position": 0
 			}
 		}
-
-		if status in ["cancelled","delayed","ready", "delivered","processed" ,"accepted"]:
+		if status in ["delayed","ready","processed" ,"accepted"]:
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
-			return basic_success((res.modified_count > 0))
+		if status in ["cancelled", "delivered"]:
+			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
+			total = db.orders.find({"order_id":order_id}).count()
+			total_processed = db.orders.find({"order_id":order_id , "status.0.status":{'$in':["cancelled", "delivered"]}}).count()
+			if total  == total_processed:
+				res2 = db.orders.aggregate([
+					{
+						'$match': {
+							"order_id":"20170104000001" ,
+							"status.0.status":"delivered"
+						}
+					},
+					{
+						'$unwind':'$order'
+					},
+					{
+						'$group': {
+							'_id':'order_id' , 
+							'total':{'$sum':'$order_total'} , 
+							"total_cashback":{'$sum':'$order.cashback'}
+						}
+					}
+				]);
+				if res2:
+					is_referral =  db.referral_offers.find_one({"order_id":order_id , "status":'processed'})
+					if is_referral:
+						for re in res2: 
+							if int(re['total']) >= 250:
+								total = int(re['total'])/10
+								if total > 50:
+									total= 50
+								db.referral_offers.update_one({"order_id":order_id} , {'$set':{'status':'used'}})
+								push_query = {
+									"cashback_history": {
+										"$each": [{"cashback": total + int(re['total_cashback']), "order_id":order_id , "timestamp": datetime.now()}],
+										"$position": 0
+									}
+								}
+					else:
+						for re in res2:
+							push_query = {
+								"cashback_history"+"."+datetime.now().strftime("%Y"): {
+										"$each": [ {"cashback": int(re['total_cashback']), "order_id":order_id , "timestamp":  datetime.now().strftime("%d,%b") , "year":datetime.now().strftime("%Y") }],
+										"$position": 0
+									}
+								}
+					res1 = db.orders.find_one({'suborder_id':suborder_id})
+					db.user.update_one({"user_id":res1['user_id']} , {'$push':push_query ,'$set':{'account_balance':{'$add':['$account_balance' ,int(re['total_cashback']) ] },'total_cashback':{'$add':['$total_cashback', int(re['total_cashback'])] }}})
+				return basic_success((res.modified_count > 0))
 		else:
 			return basic_failure("Wrong Status")
-	except:
-		return basic_failure("Something went Wrong")	
+	except Exception as e:
+		return basic_failure(str(e)+"Something went Wrong")	
 
 
 def inner_scan(opts, retailer_id, method):

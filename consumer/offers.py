@@ -49,9 +49,15 @@ def list_location(request):
 def order(data, user_id, method):
 	try:
 		if data:
+			''' Check for required Field'''
+			
 			for key in ["user_id" , "name" , "address" , "email"  , "phone" , "order"]:
 				if key not in data:
 					return basic_error(key+" missing")
+			
+
+
+			''' Order ID creation '''		
 			search_term = datetime.today().strftime("%Y%m%d")
 			collection = db.orders.find({"order_id":re.compile(search_term, re.IGNORECASE)}).sort("order_id" , -1)
 			try:
@@ -60,6 +66,8 @@ def order(data, user_id, method):
 			except:
 				order_id = 0
 			order_id = datetime.today().strftime("%Y%m%d") + (str(int(order_id) +1)).zfill(6)
+			
+
 			i=0
 			data['order_id']= order_id
 			order_data = list()
@@ -68,6 +76,7 @@ def order(data, user_id, method):
 			data['cashback']= {}
 			data['cashback']['total_cb']  = total_cb
 			data['cashback']['type'] = list()
+			
 			for order in data['order']:
 				total_cb1=0
 				order_temp = {}
@@ -364,7 +373,7 @@ def add_user(request):
 			if data1:
 				referral_code_true = True
 				referred_by = data1['user_id']
-		referral_code = (opts['name'])[:3] + ''.join(random.choice(string.ascii_lowercase+string.digits) for i in range(5))
+		referral_code = (opts['name'])[:2] + ''.join(random.choice(string.ascii_lowercase+string.digits) for i in range(6))
 		user_id = search_term + (str(int(user_id) +1)).zfill(4)
 		data = {}
 		data['user_id']=user_id

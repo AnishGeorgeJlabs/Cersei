@@ -184,7 +184,7 @@ def change_password(request):
 			return basic_error(key+" missing, unauthorized access")
 
 	update = db.credentials.update_one({
-		"_id": ObjectId(opts['api_key']),
+		"api_key": (opts['api_key']),
 		"username": opts['username'],
 		"password": opts['old_pass'],
 		"type": type,
