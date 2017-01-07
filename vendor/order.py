@@ -188,7 +188,7 @@ def update_order(opts, retailer_id, method):
 				res2 = db.orders.aggregate([
 					{
 						'$match': {
-							"order_id":"20170104000001" ,
+							"order_id":order_id ,
 							"status.0.status":"delivered"
 						}
 					},
@@ -233,7 +233,7 @@ def update_order(opts, retailer_id, method):
 			return basic_success((res.modified_count > 0))
 		return basic_failure("Wrong Status")
 	except Exception as e:
-		return basic_failure("Something went Wrong")	
+		return basic_failure(str(e)+"Something went Wrong")	
 
 
 def inner_scan(opts, retailer_id, method):
