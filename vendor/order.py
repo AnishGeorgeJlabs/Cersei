@@ -160,9 +160,9 @@ def update_order(opts, retailer_id, method):
 				"$position": 0
 			}
 		}
-		if status in ["delayed","ready" ,"accepted"]:
+		if status in ["delayed","ready" ,"accepted" , "processed"]:
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
-		if status is "processed":
+		if status is "processed1":
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
 			qrcodes = opts.get("qrcodes")
 			if not qrcodes:
