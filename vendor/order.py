@@ -204,6 +204,7 @@ def update_order(opts, retailer_id, method):
 					}
 				]);
 				if res2:
+					total = 0
 					is_referral =  db.referral_offers.find_one({"order_id":order_id , "status":'processed'})
 					if is_referral:
 						for re in res2: 
@@ -229,7 +230,7 @@ def update_order(opts, retailer_id, method):
 									}
 								}
 					res1 = db.orders.find_one({'suborder_id':suborder_id})
-					db.user.find_one_and_update({"user_id":res1['user_id']} , {'$push':push_query , '$inc':{'total_cashback':int(re['total_cashback']) , 'account_balance':int(re['total_cashback'])} })
+					db.user.find_one_and_update({"user_id":res1['user_id']} , {'$push':push_query , '$inc':{'total_cashback':total + int(re['total_cashback']) , 'account_balance':total + int(re['total_cashback'])} })
 			return basic_success((res.modified_count > 0))
 		return basic_failure("Wrong Status")
 	except Exception as e:

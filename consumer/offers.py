@@ -111,14 +111,15 @@ def order(data, user_id, method):
 					temp['offer_id'] = item['offer_id']
 					temp['item_id'] = item_detail['item_id']
 					temp['name'] = item_detail['product_name']
+
 					temp['pic'] = item_detail['img'][0]
 					temp['barcode'] = item_detail['barcode']
 					temp['price'] = int(item_detail['price'])
 					temp['qty'] = item['qty']
 					price = int(item['qty']) * int( item_detail	['price'])
-					total_cb1 += int(price * (float(temp['cashback'])/100))
+					total_cb1 += int(price * (float(offer['cashback'])/100))
 					temp['total']=price
-					temp['cashback'] = int(price * (float(temp['cashback'])/100))
+					temp['cashback'] = int(price * (float(offer['cashback'])/100))
 					item['info'] = temp
 					(order_temp['order']).append(temp)
 					order_temp['order_total'] += price
