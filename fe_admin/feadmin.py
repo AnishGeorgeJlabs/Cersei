@@ -48,7 +48,7 @@ def create_feuser(opts , fe_id , method):
 		data['username']=opts['username']
 		data['password']=opts['password']
 		data['fe_id']=fe
-		data['user_type']="fe"
+		data['type']="fe"
 		data['created_at']=(datetime.now())
 		data['updated_at']=(datetime.now())
 		db.FE.update_one({"fe_id":fe_id} , {'$addToSet':{'fe':fe}})
