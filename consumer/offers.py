@@ -422,7 +422,37 @@ def show_offers(data, user_id, method):
 @csrf_exempt
 def user_info(data, user_id, method):
 	try:
-		return basic_success(db.user.find_one({"user_id":user_id} , {"_id":0}))
+		user = db.user.find_one({"user_id":user_id} , {"_id":0})
+		orders= db.orders.aggregate([
+			{
+      			'$match': {
+      				"user_id":user_id
+      			}
+    		},
+		    {
+      			'$project': {
+		        	"item":'$order' ,
+		        	"total":'$order_total',	  
+		        	'order_id':'$order_id',
+			      	'suborder_id':'$suborder_id',
+			      	'retailer_id':'$retailer_id'
+     			 }
+			},
+			{
+      			'$unwind': '$item'
+    		},
+		    {
+      			'$group': {
+	      			'_id':'$suborder_id' , 
+	      			'order_id':{'$max':'$order_id'},
+	      			'retailer_id':{'$max':'$retailer_id'},
+	      			'item':{'$push':'$item'}
+      			}
+    		}
+ 		]);
+		user['orders'] = orders
+		user['retailer'] = db.retailer.find({},{"retailer_id":1 , "name":1 , "_id":0})
+		return basic_success(user)
 	except Exception as e:
 		return basic_error("NO record found")
 
