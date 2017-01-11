@@ -216,16 +216,16 @@ def update_order(opts, retailer_id, method):
 								if is_referral.get('referred_by'):
 									db.referral_offers.insert({ "user_id":is_referral['referred_by'] , "used":False , "created_at":datetime.now()})
 								push_query = {
-									"cashback_history"+"."+datetime.now().strftime("%Y"): {
-										"$each": [ {"cashback": total +int(re['total_cashback']), "order_id":order_id , "timestamp":  datetime.now().strftime("%d,%b") , "year":datetime.now().strftime("%Y") }],
+									"cashback_history"+"."+datetime.now().strftime("%b %Y"): {
+										"$each": [ {"cashback": total +int(re['total_cashback']), "order_id":order_id , "timestamp":  datetime.now().strftime("%d,%A")  }],
 										"$position": 0
 									}
 								}
 					else:
 						for re in res2:
 							push_query = {
-								"cashback_history"+"."+datetime.now().strftime("%Y"): {
-										"$each": [ {"cashback": int(re['total_cashback']), "order_id":order_id , "timestamp":  datetime.now().strftime("%d,%b") , "year":datetime.now().strftime("%Y") }],
+								"cashback_history"+"."+datetime.now().strftime("%b %Y"): {
+										"$each": [ {"cashback": int(re['total_cashback']), "order_id":order_id , "timestamp":  datetime.now().strftime("%d,%A")  }],
 										"$position": 0
 									}
 								}

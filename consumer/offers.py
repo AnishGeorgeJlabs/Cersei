@@ -423,10 +423,10 @@ def show_offers(data, user_id, method):
 def user_info(data, user_id, method):
 	try:
 		user = db.user.find_one({"user_id":user_id} , {"_id":0})
-		orders= db.orders.aggregate([
+		orders= list(db.orders.aggregate([
 			{
       			'$match': {
-      				"user_id":user_id
+      				"user_id":user_id 
       			}
     		},
 		    {
@@ -449,9 +449,20 @@ def user_info(data, user_id, method):
 	      			'item':{'$push':'$item'}
       			}
     		}
- 		]);
-		user['orders'] = orders
-		user['retailer'] = db.retailer.find({},{"retailer_id":1 , "name":1 , "_id":0})
+ 		]));
+		retailers = list(db.retailer.find({},{"retailer_id":1 , "name":1 , "_id":0}))
+		for ch in user['cashback_history']:
+			for c in user['cashback_history'][ch]:
+				c['items']= list()
+				for order in orders:
+					if order['order_id'] == c['order_id']:
+						for item in order['item']:
+							for retailer in retailers:
+								if order['retailer_id'] == retailer['retailer_id']:
+									item['retailer_name']=retailer['name']
+									item['retailer_id']=retailer['retailer_id']
+									(c['items']).append(item)
+							
 		return basic_success(user)
 	except Exception as e:
 		return basic_error("NO record found")
