@@ -100,8 +100,12 @@ def approve_offer(opts , fe_id , method):
 		fe = data.find_one({"fe_id":(fe_id)} , {"_id":False})
 		if not fe or fe['level'] is not 1:
 			return basic_failure("Unknown FE Admin")
-		if opts.get('offer_id'):	
-			result=db.offers.find_one_and_update({'offer_id': opts.get('offer_id')},{'$set': {'approved': True}},projection={'approved': True, '_id': False},return_document=ReturnDocument.AFTER)
+		if opts.get('offer_id'):
+			r = db.offers.find_one({'offer_id': opts.get('offer_id')})
+			if r and r.get('new_cashback'):
+				result=db.offers.find_one_and_update({'offer_id': opts.get('offer_id')},{'$set': {'approved': True , 'cashback':int(r.get('new_cashback'))} , '$unset':{"new_cashback":""}},projection={'approved': True, '_id': False},return_document=ReturnDocument.AFTER)
+			else:
+				result=db.offers.find_one_and_update({'offer_id': opts.get('offer_id')},{'$set': {'approved': True }},projection={'approved': True, '_id': False},return_document=ReturnDocument.AFTER)
 			if result['approved'] is True:
 				return basic_success("Offer approved")
 			else:

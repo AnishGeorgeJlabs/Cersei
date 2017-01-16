@@ -41,6 +41,40 @@ def list_retailer(opts , fe_id , method):
 	except:
 		return basic_failure()
 
+@csrf_exempt
+def list_qrcodes(opts , fe_id , method):
+	try:
+		if opts.get("offer_id"):
+			result=db.qrcodes.aggregate([
+				{
+					'$match':{
+						"offer_id":opts.get("offer_id")
+					}
+				},
+				{
+					'$group':{
+						'_id':'$used' ,
+						'qrcodes':{'$push':'$qrcodes'}
+					}
+				}
+			])
+			data={}
+			data['used']=list()
+			data['unused']=list()
+			if result:
+				for r in result:
+					if r['_id'] is True:
+						data['unused']=r['qrcodes']
+					if  r['_id'] is False:
+						data['used']=r['qrcodes']
+				return basic_success(data)
+			else:
+				return basic_failure("Offer not found")
+		else:
+			return basic_failure("Offer ID missing")
+	except Exception as e:
+		return basic_error("Something went wrong")
+
 
 
 @csrf_exempt
@@ -194,5 +228,20 @@ def delete_offers(opts , fe_id , method):
 				return basic_failure("Offer not found")
 		else:
 			return basic_failure("Offer ID missing")
+	except Exception as e:
+		return basic_error("Something went wrong")
+
+
+
+@csrf_exempt
+def edit_offer(opts , fe_id , method):
+	try:
+		offer_id = opts['offer_id']
+		cb = opts['cashback']
+		result = db.offers.update_one({"offer_id":opts.get("offer_id")} ,{	 '$set':{"updated_at":datetime.now()  + timedelta(hours=5,minutes=30)  , "new_cashback":cb , "updated_by":fe_id}} )
+		if result.modified_count:
+			return basic_success("Offer Updated and waiting for approval")
+		else:
+			return basic_failure("Offer not found")
 	except Exception as e:
 		return basic_error("Something went wrong")
