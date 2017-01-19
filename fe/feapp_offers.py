@@ -64,9 +64,9 @@ def list_qrcodes(opts , fe_id , method):
 			if result:
 				for r in result:
 					if r['_id'] is True:
-						data['unused']=r['qrcodes']
-					if  r['_id'] is False:
 						data['used']=r['qrcodes']
+					if  r['_id'] is False:
+						data['unused']=r['qrcodes']
 				return basic_success(data)
 			else:
 				return basic_failure("Offer not found")
@@ -240,7 +240,7 @@ def edit_offer(opts , fe_id , method):
 		cb = opts['cashback']
 		result = db.offers.update_one({"offer_id":opts.get("offer_id")} ,{	 '$set':{"updated_at":datetime.now()  + timedelta(hours=5,minutes=30)  , "new_cashback":cb , "updated_by":fe_id}} )
 		if result.modified_count:
-			return basic_success("Offer Updated and waiting for approval")
+			return basic_success({"msg":'Offer Updated and waiting for approval' , "offer_id" :offer_id})
 		else:
 			return basic_failure("Offer not found")
 	except Exception as e:
