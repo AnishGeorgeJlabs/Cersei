@@ -160,26 +160,51 @@ def update_order(opts, retailer_id, method):
 				"$position": 0
 			}
 		}
-		if status in ["delayed","ready" ,"accepted" , "processed"]:
+		qrcodes = opts.get("qrcodes")
+		if status in ["delayed","ready" ]:
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
 			return basic_success((res.modified_count > 0))
-		if status is "processed1":
-			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
-			qrcodes = opts.get("qrcodes")
-			if not qrcodes:
-				return basic_failure("please add qrcodes to order")
-			current_order=db.orders.find_one({"order_id":order_id , "retailer_id": retailer_id} , {"_id":False  , "order":1})
-			if len(qrcodes) is not int(current_order['total_quantity']):
-				return basic_failure("No. of qrcodes must be equal to total quantity")
-			code_data = db.qrcodes.find({"qrcodes": {'$in':qccodes} ,"retailer_id": retailer_id ,  "status": "live" , "used": False  }, {"_id": False })
-			if len(qrcodes) is not code_data.count():
-				return basic_failure("Some of qrcodes are not valid");
-			update = {}
-			update['used']=True
-			update['used_at']=datetime.now()
-			update['suborder_id']=suborder_id
-			db.qrcodes.update({"qrcodes": {'$in':qccodes} ,"retailer_id": retailer_id ,  "status": "live" , "used": False  } , {'$set':update})
-			return basic_success((res.modified_count > 0))
+		if status in ["accepted" , "processed"]:
+			if status is "processed":
+				if not qrcodes :
+					return basic_failure("please add qrcodes to order")
+				current_order=db.orders.find_one({"order_id":order_id , "retailer_id": retailer_id} , {"_id":False  , "order":1})
+				if len(qrcodes) is not int(current_order['total_quantity']):
+					return basic_failure("No. of qrcodes must be equal to total quantity")
+				code_data = db.qrcodes.find({"qrcodes": {'$in':qrcodes} ,"retailer_id": retailer_id ,  "status": "live" , "used": False  }, {"_id": False })
+				if len(qrcodes) is not code_data.count():
+					return basic_failure("Some of qrcodes are not valid");
+				update = {}
+				update['used']=True
+				update['used_at']=datetime.now()
+				update['suborder_id']=suborder_id
+				db.qrcodes.update({"qrcodes": {'$in':qrcodes} ,"retailer_id": retailer_id ,  "status": "live" , "used": False  } , {'$set':update})
+				res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
+				return basic_success((res.modified_count > 0))
+			else:
+				res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
+				if not qrcodes :
+					return basic_success((res.modified_count > 0))
+				else:
+					current_order=db.orders.find_one({"order_id":order_id , "retailer_id": retailer_id} , {"_id":False  })
+					if len(qrcodes) is not int(current_order['total_quantity']):
+						return basic_failure("No. of qrcodes must be equal to total quantity")
+					code_data = db.qrcodes.find({"qrcodes": {'$in':qrcodes} ,"retailer_id": retailer_id ,  "status": "live" , "used": False  }, {"_id": False })
+					if len(qrcodes) is not code_data.count():
+						return basic_failure("Some of qrcodes are not valid");
+					update = {}
+					update['used']=True
+					update['used_at']=datetime.now()
+					update['suborder_id']=suborder_id
+					push_query = {
+						"status": {
+							"$each": [{"status": 'processed', "time": datetime.now()}],
+							"$position": 0
+						}
+					}
+					db.qrcodes.update({"qrcodes": {'$in':qrcodes} ,"retailer_id": retailer_id ,  "status": "live" , "used": False  } , {'$set':update})
+					res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
+					return basic_success((res.modified_count > 0))
 		if status in ["cancelled", "delivered"]:
 			res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
 			total = db.orders.find({"order_id":order_id}).count()
@@ -244,7 +269,7 @@ def inner_scan(opts, retailer_id, method):
 		offer_id = opts.get	("offer_id")	
 		if not code or not order_id or not offer_id:
 			return basic_error("Invalid parameters")
-		code_data = db.qrcodes.find_one({"qrcodes": qc ,"retailer_id": retailer_id ,  "status": "live" , "used": False  }, {"_id": False })
+		code_data = db.qrcodes.find_one({"qrcodes": code ,"offer_id":offer_id ,"retailer_id": retailer_id ,  "status": "live"  }, {"_id": False })
 		if not code_data:
 			return basic_failure("Code not found")
 		if code_data['used']:
