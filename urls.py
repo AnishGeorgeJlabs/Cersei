@@ -30,8 +30,10 @@ urlpatterns = [
     # ------------ Onboarding URLs -------------------------
     url(r'^add_retailer$', security.m_auth(retailer.add_retailer)),
     url(r'^add_item$', security.m_auth(retailer.add_item)),
+    url(r'^add_item_new$', security.m_auth(retailer.add_item_new)),
 	url(r'^edit_retailer$', security.m_auth(retailer.edit_retailer)),
     url(r'^edit_item$', security.m_auth(retailer.edit_item)),
+    url(r'^edit_item_new$', security.m_auth(retailer.edit_item_new)),
     url(r'^show_retailer$', security.m_auth(retailer.show_retailer)),
     url(r'^show_item$', security.m_auth(retailer.show_item)),
 	url(r'^show_category$', security.m_auth(retailer.show_category)),

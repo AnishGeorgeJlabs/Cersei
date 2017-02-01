@@ -28,7 +28,7 @@ def show_category1(opts, manager_id, method):
 		]))
 		return basic_success(data)
 	except Exception as e:
-		return basic_error(str(e)+"Something went wrong!")
+		return basic_error("Something went wrong!")
 
 @csrf_exempt
 def show_category(opts, manager_id, method):
@@ -196,6 +196,70 @@ def edit_item(opts, manager_id, method):
 		return basic_error("Something went wrong!")
 		
 @csrf_exempt
+def edit_item_new(opts, manager_id, method):
+	# ------- Add new Item ----------
+	try:
+		if method != 'POST':
+			return basic_error("POST Method only");
+		if 'item_id' not in opts:
+			return basic_error("Item ID missing")
+		for key in [ 'product_name' , "barcode" ,'detail' , 'price' , 'weight'  , 'shelf_life'  , 'category_id' , 'company_id']:
+			if key not in opts:
+				return basic_error(key+" missing")
+			
+			
+		
+		collection = db.categories.find_one({"category_id":opts.get('category_id')})
+		if not collection:
+			return basic_error("Category ID is not valid")	
+		else:
+			category_id = collection['category_id']
+			category_name = collection['category_name']
+			subcategory_name = collection['subcategory_name']
+		#add Company
+		
+		collection = db.companies.find_one({"company_id":opts.get('company_id')})
+		if not collection:
+			return basic_error("company ID is not valid")	
+		else:
+			company_id = collection['company_id']
+			company_name = collection['company_name']
+
+		
+		#add Item 
+		h= db.inventory.find_one({"item_id":opts['item_id']})
+		result = db.inventory.delete_one({"item_id":opts['item_id']})
+		if result.deleted_count:
+			data = {}
+			data['item_id']=opts['item_id']
+			data['company_id']=company_id
+			data['company_name']=company_name
+			data['category_id']=category_id
+			data['category_name']=category_name
+			data['subcategory_name']=subcategory_name
+			data['product_name']=opts['product_name']
+			data['barcode']=opts['barcode']
+			data['detail']=opts['detail']
+			data['price']=opts['price']
+			data['weight']=opts['weight']
+			data['shelf_life']=opts['shelf_life']
+			data['updated_by']=manager_id
+			data['updated_at']=(datetime.now())
+			data['add_by']= h['add_by']
+			if 'img' in opts:
+				data['img'] = opts['img']
+			else:
+				data['img']=["http://jlabs.co/no_image.png"]
+			data['created_at']=h['created_at']
+			db.inventory.insert(data);
+			return basic_success(opts['item_id'])
+		else:
+			return basic_error("Something went wrong!")
+		
+	except:
+		return basic_error("Something went wrong!")
+
+@csrf_exempt
 def add_retailer(opts, manager_id, method):
 	# ------- Add new Retailer ----------
 	try:
@@ -229,6 +293,68 @@ def add_retailer(opts, manager_id, method):
 		return basic_success(retailer_id)
 	except:
 		basic_error("Something went wrong!")
+
+@csrf_exempt
+def add_item_new(opts, manager_id, method):
+	# ------- Add new Item ----------
+	try:
+		if method != 'POST':
+			return basic_error("POST Method only");
+		for key in [ 'product_name' , "barcode" ,'detail' , 'price' , 'weight'  , 'shelf_life' , 'category_id' , 'company_id']:
+			if key not in opts:
+				return basic_error(key+" missing")
+		
+		# GET Item ID 
+		collection = db.inventory.find_one(sort=[("item_id", -1)])
+		try:
+			item_id = collection['item_id'];
+			item_id = item_id.replace("IM","")
+		except:
+			item_id = "0";
+		item_id = "IM" + (str(int(item_id) +1)).zfill(7)
+		
+		
+		#Add Category 
+		
+		collection = db.categories.find_one({"category_id":opts.get('category_id')})
+		if not collection:
+			return basic_error("Category ID is not valid")	
+		else:
+			category_id = collection['category_id']
+			category_name = collection['category_name']
+			subcategory_name = collection['subcategory_name']
+		#add Company
+		
+		collection = db.companies.find_one({"company_id":opts.get('company_id')})
+		if not collection:
+			return basic_error("company ID is not valid")	
+		else:
+			company_id = collection['company_id']
+			company_name = collection['company_name']
+
+		#add Item 
+		data = {}
+		data['item_id']=item_id
+		data['company_id']=company_id
+		data['company_name']=company_name
+		data['category_id']=category_id
+		data['category_name']=category_name
+		data['subcategory_name']=subcategory_name
+		data['product_name']=opts['product_name']
+		data['barcode']=opts['barcode']
+		data['detail']=opts['detail']
+		data['price']=opts['price']
+		data['weight']=opts['weight']
+		data['shelf_life']=opts['shelf_life']
+		data['img']= list()
+		data['add_by']=manager_id
+		data['img']=["http://jlabs.co/no_image.png"]
+		data['created_at']=(datetime.now())
+		data['updated_at']=(datetime.now())
+		db.inventory.insert(data);
+		return basic_success({"item_id":item_id , "company_id":company_id , "category_id":category_id})
+	except:
+		return basic_error("Something went wrong!")
 
 @csrf_exempt
 def add_item(opts, manager_id, method):
