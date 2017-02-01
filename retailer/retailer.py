@@ -6,6 +6,31 @@ from . import db, basic_success, basic_failure, basic_error
 from datetime import datetime
 
 @csrf_exempt
+def show_category1(opts, manager_id, method):
+	# ------- Show All Retailers ----------
+	try:
+		if method != 'POST':
+			return basic_error("POST Method only");
+		data = list(db.categories.aggregate([
+			{
+				"$group": {
+					"_id": '$category_name',
+					"subcategory": {'$push' :{'cat_id' : '$category_id' , 'subcat_name':'$subcategory_name'}}
+				}
+			},
+			{
+				"$project": {
+					"_id":0,
+					"category":'$_id',
+					"subcategory": 1,
+				}
+			}
+		]))
+		return basic_success(data)
+	except Exception as e:
+		return basic_error(str(e)+"Something went wrong!")
+
+@csrf_exempt
 def show_category(opts, manager_id, method):
 	# ------- Show All Retailers ----------
 	try:
