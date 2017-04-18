@@ -465,7 +465,7 @@ def user_info(data, user_id, method):
 							
 		return basic_success(user)
 	except Exception as e:
-		return basic_error("NO record found")
+		return basic_error("NO record found"+ str(e))
 
 @csrf_exempt
 def phone(request):

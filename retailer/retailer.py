@@ -179,6 +179,7 @@ def edit_item(opts, manager_id, method):
 			data['price']=opts['price']
 			data['weight']=opts['weight']
 			data['shelf_life']=opts['shelf_life']
+			data['active']=True
 			data['updated_by']=manager_id
 			data['updated_at']=(datetime.now())
 			data['add_by']= h['add_by']
@@ -243,6 +244,7 @@ def edit_item_new(opts, manager_id, method):
 			data['price']=opts['price']
 			data['weight']=opts['weight']
 			data['shelf_life']=opts['shelf_life']
+			data['active']=True
 			data['updated_by']=manager_id
 			data['updated_at']=(datetime.now())
 			data['add_by']= h['add_by']
@@ -346,6 +348,7 @@ def add_item_new(opts, manager_id, method):
 		data['price']=opts['price']
 		data['weight']=opts['weight']
 		data['shelf_life']=opts['shelf_life']
+		data['active']=True
 		data['img']= list()
 		data['add_by']=manager_id
 		data['img']=["http://jlabs.co/no_image.png"]
@@ -436,6 +439,7 @@ def add_item(opts, manager_id, method):
 		data['weight']=opts['weight']
 		data['shelf_life']=opts['shelf_life']
 		data['img']= list()
+		data['active']=True
 		data['add_by']=manager_id
 		data['img']=["http://jlabs.co/no_image.png"]
 		data['created_at']=(datetime.now())
