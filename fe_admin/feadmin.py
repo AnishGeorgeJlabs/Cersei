@@ -21,6 +21,9 @@ def create_feuser(opts , fe_id , method):
 		for key in ['name' , "contact" ,'email', 'password' , 'username']:
 			if key not in opts:
 				return basic_error(key+" missing")
+		fe_exist= db.credentials.find_one({"username" :opts['username']})
+		if fe_exist:
+			return basic_error("Username already in use. Please choose another username")
 		feresult= db.FE.find_one({"fe_id" :fe_id})		
 		if not feresult or feresult['level'] is not 1:
 			return basic_failure("Unknown FE Admin")
@@ -83,7 +86,7 @@ def remove_fe(opts , fe_id , method):
 			return basic_failure("Unknown FE Admin")
 		if opts.get('remove_id'):	
 			result = db.FE.delete_one({'fe_id': opts.get('remove_id') , 'level':0})
-			result = db.credentials.delete_one({'fe_id': opts.get('remove_id') , "user_type":"fe"})
+			result = db.credentials.delete_one({'fe_id': opts.get('remove_id') , "type":"fe"})
 			if result.deleted_count is 1:
 				return basic_success("FE User Removed")
 			else:

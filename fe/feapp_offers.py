@@ -238,7 +238,7 @@ def edit_offer(opts , fe_id , method):
 	try:
 		offer_id = opts['offer_id']
 		cb = opts['cashback']
-		result = db.offers.update_one({"offer_id":opts.get("offer_id")} ,{	 '$set':{"updated_at":datetime.now()  + timedelta(hours=5,minutes=30)  , "new_cashback":cb , "updated_by":fe_id}} )
+		result = db.offers.update_one({"offer_id":opts.get("offer_id")} ,{	 '$set':{"updated_at":datetime.now()  + timedelta(hours=5,minutes=30)  , "cashback":cb , "updated_by":fe_id , 'approved':False}} )
 		if result.modified_count:
 			return basic_success({"msg":'Offer Updated and waiting for approval' , "offer_id" :offer_id})
 		else:

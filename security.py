@@ -141,8 +141,8 @@ def fe_login(request):
 		for key in ['username', 'password', 'user_type']:
 			if key not in data:
 				return basic_error(key+" missing")
-		m=db.credentials.find_one({"username":data['username'] , "type":{'$in':['fe' , 'feadmin']}})
-		if db.credentials.count({"username":data['username']}) > 0:
+		m=db.credentials.find_one({"username":data['username'] , "type":{'$in':['fe' , 'feadmin']} , "active":{'$ne':False} })
+		if m:
 			if m['password'] == data['password']:
 				fe_user = db.FE.find_one({"fe_id": m['fe_id']} , {"_id":False})
 				result = db.credentials.update_one({"username":data['username'] , "type":m['type']} ,{'$set':{"api_key":api_key,"last_login":datetime.now() + timedelta(hours=5,minutes=30)}} )
@@ -157,7 +157,7 @@ def fe_login(request):
 		else:
 			return basic_error("Invalid Username And Password.") 
 	except Exception as e:
-		return basic_error(str(e)+"Something went wrong. Please try later.")
+		return basic_error("Something went wrong. Please try later.")
 
 @csrf_exempt
 def fake_login(request):    
