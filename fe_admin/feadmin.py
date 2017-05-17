@@ -101,7 +101,7 @@ def approve_offer(opts , fe_id , method):
 	try:
 		data=db.FE
 		fe = data.find_one({"fe_id":(fe_id)} , {"_id":False})
-		if not fe or fe['level'] is not 1:
+		if not fe or int(fe['level']) is not 1:
 			return basic_failure("Unknown FE Admin")
 		if opts.get('offer_id'):
 			r = db.offers.find_one({'offer_id': opts.get('offer_id')})
