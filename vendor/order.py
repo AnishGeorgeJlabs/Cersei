@@ -182,7 +182,7 @@ def update_order(opts, retailer_id, method):
 				res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
 				return basic_success((res.modified_count > 0))
 			else:
-				#res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
+				res=db.orders.update_one({"order_id": order_id,"suborder_id": suborder_id, "retailer_id": retailer_id}, {"$push": push_query})
 				if not qrcodes :
 					return basic_success((res.modified_count > 0))
 				else:
