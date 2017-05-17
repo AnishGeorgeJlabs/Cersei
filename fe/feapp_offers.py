@@ -85,11 +85,16 @@ def list_offers(opts , fe_id , method):
 		fe = data.find_one({"fe_id":(fe_id)} , {"_id":False})
 		if not fe:
 			return basic_failure("Not found")
+		items_result = db.inventory.find({'company_id':fe['company_id']} , {"_id":0 , "item_id":1})
+		items = list();
+		if items_result:
+			for item in items_result:
+				items.append(item['item_id'])
 		data = db.offers
 		if fe['level'] is 1:
-			offer_result = data.find({"fe_id":{'$in':fe['fe'] },"deleted_at":{'$exists':False}} , {"_id":False})
+			offer_result = data.find({"fe_id":{'$in':fe['fe'] },"deleted_at":{'$exists':False} , "item_id":{'$in':items}} , {"_id":False})
 		else:
-			offer_result = data.find({"fe_id":fe_id,"deleted_at":{'$exists':False}} , {"_id":False})
+			offer_result = data.find({"fe_id":fe_id,"deleted_at":{'$exists':False}, "item_id":{'$in':items}} , {"_id":False})
 		data=db.qrcodes
 		codes=list(data.aggregate( [
 			{
