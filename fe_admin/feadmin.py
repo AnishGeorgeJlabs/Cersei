@@ -24,8 +24,8 @@ def create_feuser(opts , fe_id , method):
 		fe_exist= db.credentials.find_one({"username" :opts['username']})
 		if fe_exist:
 			return basic_error("Username already in use. Please choose another username")
-		feresult= db.FE.find_one({"fe_id" :fe_id})		
-		if not feresult or feresult['level'] is not 1:
+		feresult= db.FE.find_one({"fe_id" :fe_id})
+		if not feresult or int(feresult['level']) is not 1:
 			return basic_failure("Unknown FE Admin")
 		result = db.FE.find_one({'level':0}  , sort=[("fe", -1)])
 		try:
