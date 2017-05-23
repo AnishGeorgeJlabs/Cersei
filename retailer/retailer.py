@@ -271,6 +271,9 @@ def add_retailer(opts, manager_id, method):
 			if key not in opts:
 				return basic_error(key+" missing")
 		# Get Retailer ID to add
+		re_exist= db.credentials.find_one({"username" :opts['email']})
+		if re_exist:
+			return basic_error("The retailer with this Email ID is already registered.")
 		collection = db.retailer.find_one(sort=[("retailer_id", -1)])
 		try:
 			retailer_id = collection['retailer_id'];
@@ -292,6 +295,15 @@ def add_retailer(opts, manager_id, method):
 			data['created_at']=(datetime.now())
 			data['updated_at']=(datetime.now())
 			db.retailer.insert(data);
+			data= {}
+			data['username']=opts['email']
+			data['password']="bdca866007fb255201297d2a15a49513"
+			data['fe_id']=retailer_id
+			data['type']="retailer"
+			data['created_at']=(datetime.now())
+			data['updated_at']=(datetime.now())
+			data['add_by']=manager_id
+			result = db.credentials.insert(data);
 		return basic_success(retailer_id)
 	except:
 		basic_error("Something went wrong!")

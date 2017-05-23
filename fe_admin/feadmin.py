@@ -27,7 +27,7 @@ def create_feuser(opts , fe_id , method):
 		feresult= db.FE.find_one({"fe_id" :fe_id})
 		if not feresult or int(feresult['level']) is not 1:
 			return basic_failure("Unknown FE Admin")
-		result = db.FE.find_one({'level':0}  , sort=[("fe", -1)])
+		result = db.FE.find_one({'level':0}  , sort=[("fe_id", -1)])
 		try:
 			fe = result['fe_id'];
 			fe = fe.replace("FE","")
@@ -57,11 +57,11 @@ def create_feuser(opts , fe_id , method):
 		db.FE.update_one({"fe_id":fe_id} , {'$addToSet':{'fe':fe}})
 		result = db.credentials.insert(data);
 		return basic_success(fe)
-	except:
+	except Exception as e:
 		return basic_error("Something went wrong!")
-		'''exc_type, exc_obj, exc_tb = sys.exc_info()
-		fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-		return basic_error([exc_type, fname, exc_tb.tb_lineno , str(e)])'''
+		# exc_type, exc_obj, exc_tb = sys.exc_info()
+		# fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+		# return basic_error([exc_type, fname, exc_tb.tb_lineno , str(e)])
 		
 	
 @csrf_exempt

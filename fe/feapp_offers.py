@@ -91,6 +91,7 @@ def list_offers(opts , fe_id , method):
 			for item in items_result:
 				items.append(item['item_id'])
 		data = db.offers
+		#return basic_success(items)
 		if int(fe['level']) is 1:
 			offer_result = data.find({"fe_id":{'$in':fe['fe'] },"deleted_at":{'$exists':False} , "item_id":{'$in':items}} , {"_id":False})
 		else:
