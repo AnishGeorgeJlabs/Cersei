@@ -298,7 +298,7 @@ def add_retailer(opts, manager_id, method):
 			data= {}
 			data['username']=opts['email']
 			data['password']="bdca866007fb255201297d2a15a49513"
-			data['fe_id']=retailer_id
+			data['retailer_id']=retailer_id
 			data['type']="retailer"
 			data['created_at']=(datetime.now())
 			data['updated_at']=(datetime.now())
